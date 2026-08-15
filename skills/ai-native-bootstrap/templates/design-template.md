@@ -7,7 +7,7 @@
 
 [High-level description of the technical approach and where this feature sits in the overall system. If meaningful alternatives were considered, name the chosen one and why in 1–2 sentences.]
 
-## Alignment with CLAUDE.md
+## Alignment with [AGENT INSTRUCTIONS FILE]
 
 [How this design follows the project's tech stack, structure conventions, and constraints. Call out any deliberate deviation and its justification.]
 

@@ -1,6 +1,6 @@
 # ai-native-skills
 
-Claude Code Agent Skills for AI Native development.
+Agent Skills for AI Native development, compatible with Codex and Claude Code.
 
 ## Skills
 
@@ -10,19 +10,23 @@ Claude Code Agent Skills for AI Native development.
 
 ## 安装
 
-Claude Code 从 `~/.claude/skills/`（个人级）或项目内 `.claude/skills/`（项目级）加载 Skill。
+Codex 从 `~/.agents/skills/`（个人级）或项目内 `.agents/skills/`（项目级）加载 Skill；Claude Code 使用 `~/.claude/skills/` 或项目内 `.claude/skills/`。
 
-将某个 skill 安装为个人 Skill（推荐软链，仓库更新后自动生效）：
+将某个 skill 安装为个人 Skill（推荐软链，仓库更新后自动生效）。Codex：
 
 ```bash
+mkdir -p ~/.agents/skills
+ln -s "$(pwd)/skills/{skill-name}" ~/.agents/skills/{skill-name}
+```
+
+Claude Code：
+
+```bash
+mkdir -p ~/.claude/skills
 ln -s "$(pwd)/skills/{skill-name}" ~/.claude/skills/{skill-name}
 ```
 
-或复制安装：
-
-```bash
-cp -r skills/{skill-name} ~/.claude/skills/
-```
+也可以将 skill 目录复制到对应的个人级或项目级 skills 目录。
 
 各 skill 的具体安装与使用说明见对应目录下的 README。
 

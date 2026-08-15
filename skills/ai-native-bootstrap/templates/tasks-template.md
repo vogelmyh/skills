@@ -55,8 +55,8 @@ Every task must be atomic so an agent can execute it in one focused pass:
   - _Requirements: [X.Y]_
 - [ ] 8. Run full build, lint, and test suite; fix any failures
 - [ ] 9. Write back learnings and spec corrections
-  - Append pitfalls, hidden constraints, and debugging conclusions discovered during implementation to the Learnings / Gotchas section of CLAUDE.md
-  - Fix any conventions in CLAUDE.md that this work disproved
+  - Append pitfalls, hidden constraints, and debugging conclusions discovered during implementation to the Learnings / Gotchas section of [AGENT INSTRUCTIONS FILE]
+  - Fix any conventions in [AGENT INSTRUCTIONS FILE] that this work disproved
   - Update design.md where the actual implementation diverged from it
 
 ## Requirements Coverage

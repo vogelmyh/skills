@@ -1,7 +1,8 @@
-# CLAUDE.md
+# [AGENT INSTRUCTIONS FILE]
 
-<!-- Project constitution. Claude Code reads this file automatically in every session.
-     Keep it short and factual: every line costs context. Delete sections that don't apply. -->
+<!-- Project constitution. The active coding-agent host reads this file automatically in every session.
+     Use AGENTS.md for Codex or CLAUDE.md for Claude Code. Keep it short and factual:
+     every line costs context. Delete sections that don't apply. -->
 
 ## Project Overview
 
