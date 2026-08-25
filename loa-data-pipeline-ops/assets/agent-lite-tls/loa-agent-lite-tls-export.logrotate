@@ -1,0 +1,12 @@
+/var/log/loa-agent-lite/application.jsonl {
+    daily
+    maxsize 100M
+    rotate 7
+    missingok
+    notifempty
+    compress
+    delaycompress
+    copytruncate
+    create 0640 root root
+    su root root
+}

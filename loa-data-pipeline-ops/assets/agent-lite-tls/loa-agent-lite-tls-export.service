@@ -1,0 +1,26 @@
+[Unit]
+Description=Export Agent Lite journald entries for BytePlus TLS LogCollector
+After=systemd-journald.service
+Requires=systemd-journald.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/sbin/loa-agent-lite-tls-export
+Restart=always
+RestartSec=3s
+User=root
+Group=root
+UMask=0027
+StateDirectory=loa-agent-lite-tls-export
+StateDirectoryMode=0700
+LogsDirectory=loa-agent-lite
+LogsDirectoryMode=0750
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
