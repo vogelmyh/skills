@@ -5,8 +5,19 @@
 ## Skills
 
 - [`incremental-change-design`](./incremental-change-design/README.md)：为现有代码库中的非平凡增量变更生成经用户确认的冻结规格。
+- [`greenfield-requirement-design`](./greenfield-requirement-design/README.md)：为无需保留既有产品行为或源码实现的非平凡全新需求生成经用户确认的冻结规格。
 - [`implement-frozen-spec`](./implement-frozen-spec/README.md)：严格按照已冻结的规格实施并验证候选实现。
 - [`review-spec-implementation`](./review-spec-implementation/README.md)：独立审查候选实现是否满足冻结规格。
+
+两个设计 skill 是互斥入口：已有系统的变更使用 `incremental-change-design`，全新产品、服务、组件或独立能力使用 `greenfield-requirement-design`。二者产出相同的 `Status: FROZEN` 规格接口，并与后续两个 skill 组成三段式流程：
+
+```text
+incremental-change-design -----------\
+                                      +--> implement-frozen-spec --> review-spec-implementation
+greenfield-requirement-design -------/
+```
+
+设计、实现和审查应分别在独立 Agent 上下文中运行。阶段之间通过冻结的 `SPEC.md`、边界明确的候选实现及 `REVIEW.md` 交接，不依赖上一阶段的私有对话上下文。
 
 ## Repository layout
 
@@ -14,6 +25,9 @@
 skills/
 ├── README.md
 ├── incremental-change-design/
+│   ├── README.md
+│   └── SKILL.md
+├── greenfield-requirement-design/
 │   ├── README.md
 │   └── SKILL.md
 ├── implement-frozen-spec/
@@ -41,6 +55,7 @@ skills/
 
 ```text
 $incremental-change-design
+$greenfield-requirement-design
 $implement-frozen-spec
 $review-spec-implementation
 ```
@@ -65,4 +80,3 @@ Codex 会根据 `SKILL.md` 中的 `description` 自动匹配，也支持通过 `
 
 - [OpenAI：Build skills](https://learn.chatgpt.com/docs/build-skills)
 - [OpenAI：Save workflows as skills](https://learn.chatgpt.com/use-cases/reusable-codex-skills)
-
