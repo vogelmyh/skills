@@ -55,7 +55,7 @@ skills/
         ├── environment.md
         ├── gateway/
         ├── gateway-diagnosis.md
-        └── release-and-rollback.md
+        └── deployment-control-plane.md
 ```
 
 每个 skill 的 `SKILL.md` 是 Codex 加载的唯一指令入口，并包含必需的 `name` 与 `description` frontmatter。`README.md` 仅供仓库浏览和维护，不参与 skill 执行。

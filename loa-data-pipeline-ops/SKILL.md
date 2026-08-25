@@ -24,7 +24,7 @@ description: 运维、发布、回滚和诊断 LOA Crawler-to-Gateway-to-Agent-L
 随附 `references/` 是可移植的运维知识快照，不要求外部 `loa-data-pipeline-ops` 目录。仅按当前模式读取必要的参考资料：
 
 - 环境、分支、主机、端口、服务或日志位置：读取 [references/environment.md](references/environment.md)。
-- 发布或回滚：读取 [references/environment.md](references/environment.md) 和 [references/release-and-rollback.md](references/release-and-rollback.md)。
+- 发布或版本回滚：读取 [references/environment.md](references/environment.md) 和 [references/deployment-control-plane.md](references/deployment-control-plane.md)，再读取目标 SHA 对应的当前 workflow、部署脚本和近期 run；不要从参考资料复制执行步骤。
 - Crawler 告警、采集、TOS、MQ 发布或 Crawler 日志：读取 [references/crawler-diagnosis.md](references/crawler-diagnosis.md)。
 - Gateway MQ、TOS 导入、PostgreSQL、DLQ、用户/头像、手动导入、Gateway 日志或 BytePlus TLS/LogCollector：读取 [references/gateway-diagnosis.md](references/gateway-diagnosis.md)。
 - Agent Lite Worker/Gateway、应用日志、journald、BytePlus TLS/LogCollector 或 Agent Lite 告警：读取 [references/agent-lite-diagnosis.md](references/agent-lite-diagnosis.md)。
@@ -76,6 +76,7 @@ description: 运维、发布、回滚和诊断 LOA Crawler-to-Gateway-to-Agent-L
 
 ## 不可违背的约束
 
+- 工程发布和版本回滚只能通过目标仓库的 GitHub Actions 完成。不得用本机脚本、直接 SSH、手工复制制品或通过 SSH 直接重启服务来替代缺失的 Action 能力；如果当前 workflow 不能把操作绑定到准确的目标 SHA，应停止并报告控制面缺口。
 - Crawler 没有可用的 test/UAT 环境。不得仅因 YAML 中仍保留历史 `test`/`uat` workflow 目标就进行部署。
 - Gateway `test` 并不隔离。它与 `main` 共用生产服务器和依赖，并竞争消费同一 RabbitMQ 队列；任何 `test` 部署都按可能影响生产处理。
 - Gateway `dev -> test -> main` 只保障进程可用性。如果混合版本可能改变 MQ/TOS/数据库契约、ACK/NACK、重试/DLQ、过滤、幂等或写入语义，应停止并先完成兼容性/迁移决策。
@@ -102,6 +103,6 @@ description: 运维、发布、回滚和诊断 LOA Crawler-to-Gateway-to-Agent-L
 - 生产授权、操作或目标含糊不清；
 - Crawler 请求假定存在安全的非生产环境；
 - Gateway 变更可能造成混合版本数据语义；
-- 回滚目标无法关联到已核验的提交和成功 run；
+- 回滚目标无法关联到已核验的提交和成功 run，或当前 workflow 不能检出该准确 SHA；
 - 所需证据会暴露密钥，或要求 AI 代管生产密钥；
 - 诊断进入重放或数据修复阶段：必须重新进入证据与授权关口；若架构决策尚未解决，则另行停止。

@@ -18,7 +18,7 @@ $loa-data-pipeline-ops
 
 - `SKILL.md`：Codex 指令入口、任务路由、授权边界与不可违背的运维约束
 - `references/environment.md`：环境、分支、主机、端口、服务和日志位置快照
-- `references/release-and-rollback.md`：发布、验证和回滚经验
+- `references/deployment-control-plane.md`：GitHub Actions 发布控制面、组件映射与不可替代的安全边界
 - `references/crawler-diagnosis.md`：Crawler 告警、采集、TOS、MQ 发布与日志排查
 - `references/gateway-diagnosis.md`：Gateway 的 MQ、TOS、PostgreSQL、DLQ、导入与日志排查
 - `references/agent-lite-diagnosis.md`：Agent Lite Worker/Gateway、应用日志与告警排查

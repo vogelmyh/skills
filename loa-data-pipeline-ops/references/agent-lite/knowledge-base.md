@@ -330,7 +330,7 @@ Crawler
 - `prod` 分支变更与生产部署是两个关口。分支已更新不代表已部署。
 - 生产发布前必须锁定 `origin/prod` 完整 SHA、目标 run、两台主机、预期服务和当前已知良好版本。
 - 生产 A/B 串行部署，需要明确 B 失败后的 A 主机恢复决策；不能把单机脚本 rollback 当作跨主机自动回滚。
-- 操作员回滚可重新部署已核验的历史 `prod` commit/run，但仍需新 workflow run，并且不能恢复数据库、MQ、TOS、Mem0 或外部模型已经产生的数据副作用。
+- 当前生产 workflow 只接受 `ref=prod` 并检出该分支，不能直接绑定不可变历史 commit。除非 workflow 已更新并核验准确 SHA 入口，否则不得声称 rerun 历史生产 run 会重新部署其原始代码；操作员版本回滚应停止并报告该控制面缺口。
 - 单机脚本自动 rollback 只在该主机部署命令失败后尝试；必须再人工核验实际文件、依赖、systemd、Gateway health、Worker 和数据路径。
 - 任何生产 deploy、restart、rollback、数据库修正、RabbitMQ 干预、报告重生成或用户数据清理都需单独明确授权。
 
