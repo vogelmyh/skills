@@ -1,11 +1,11 @@
 ---
 name: loa-data-pipeline-ops
-description: 运维、发布、回滚和诊断 LOA Crawler-to-Gateway-to-Agent-Lite 数据链路。适用于 loa-glabal-crawler、loa-data-gateway 或 loa_agent_lite 的部署、GitHub Actions、BytePlus 运行状态/日志检查、告警、RabbitMQ/TOS/PostgreSQL 故障及 Fan Radar 数据路径故障；不适用于无关的 LOA 应用层工作。
+description: 运维、发布、回滚和诊断 LOA Crawler-to-Gateway-to-Agent-Lite 数据链路及 OpenCreators API 入口迁移。适用于 loa-glabal-crawler、loa-data-gateway、loa_agent_lite、loa-mcp 的部署和告警，BytePlus 运行状态/日志、RabbitMQ/TOS/PostgreSQL、Fan Radar 数据路径，以及 OpenCreators/BattleMe BaseURL、域名、`/api` 前缀、Token 校验或 ALB 502 排障；不适用于无关的 LOA 应用层工作。
 ---
 
 # LOA 数据链路运维
 
-支持人和 AI 安全协作接管 `loa-glabal-crawler`、`loa-data-gateway`、`loa_agent_lite`，以及它们依赖的 RabbitMQ、TOS、PostgreSQL、Redis、EulerStream、ECS 和 Fan Radar 数据路径。
+支持人和 AI 安全协作接管 `loa-glabal-crawler`、`loa-data-gateway`、`loa_agent_lite`，以及它们依赖的 RabbitMQ、TOS、PostgreSQL、Redis、EulerStream、ECS 和 Fan Radar 数据路径。涉及 API 入口迁移和上游 502 时，也覆盖 `loa-mcp`、OpenCreators/BattleMe 后端及相关消费者的配置核验。
 
 只处理用户当前提出的请求。不要把故障咨询扩展为重新设计，也不要把发布请求扩展为更广泛的生产维护。
 
@@ -16,6 +16,12 @@ description: 运维、发布、回滚和诊断 LOA Crawler-to-Gateway-to-Agent-L
 - Crawler：[Lighthunter-PTE-ltd/loa-glabal-crawler](https://github.com/Lighthunter-PTE-ltd/loa-glabal-crawler)
 - Gateway：[Lighthunter-PTE-ltd/loa-data-gateway](https://github.com/Lighthunter-PTE-ltd/loa-data-gateway)
 - Agent Lite / Fan Radar：[Lighthunter-PTE-ltd/loa_agent_lite](https://github.com/Lighthunter-PTE-ltd/loa_agent_lite)
+- MCP：[Lighthunter-PTE-ltd/loa-mcp](https://github.com/Lighthunter-PTE-ltd/loa-mcp)
+- OpenCreators 后端：[Lighthunter-PTE-ltd/opencreators_backend](https://github.com/Lighthunter-PTE-ltd/opencreators_backend)
+- Legacy BattleMe 后端：[Lighthunter-PTE-ltd/battleme_backend](https://github.com/Lighthunter-PTE-ltd/battleme_backend)
+- API 消费者：[Lighthunter-PTE-ltd/opencreators_app](https://github.com/Lighthunter-PTE-ltd/opencreators_app)、[Lighthunter-PTE-ltd/loa-im](https://github.com/Lighthunter-PTE-ltd/loa-im)
+
+`opencreators_app` 和 `loa-im` 只在 API 入口、回调或 Token 校验迁移范围内处理；其他应用功能仍不属于本 Skill。
 
 需要读取代码或 workflow 时，先在当前 workspace 中定位 clone，并用 `git remote get-url origin` 核对仓库身份；HTTPS 与 SSH remote 视为同一仓库。不要假定任何固定绝对路径，也不要假定仓库与 Skill 相邻。找不到 clone 时，说明缺失哪个仓库：纯说明任务可继续使用随附快照；需要当前代码证据时，应让用户提供/clone 仓库或明确授权在其指定目录 clone，不得静默改用另一个同名目录。
 
@@ -29,6 +35,7 @@ description: 运维、发布、回滚和诊断 LOA Crawler-to-Gateway-to-Agent-L
 - Gateway MQ、TOS 导入、PostgreSQL、DLQ、用户/头像、手动导入、Gateway 日志或 BytePlus TLS/LogCollector：读取 [references/gateway-diagnosis.md](references/gateway-diagnosis.md)。
 - Agent Lite Worker/Gateway、应用日志、journald、BytePlus TLS/LogCollector 或 Agent Lite 告警：读取 [references/agent-lite-diagnosis.md](references/agent-lite-diagnosis.md)。
 - Fan Radar 数据缺失/错误，或故障组件未知：读取 [references/end-to-end-diagnosis.md](references/end-to-end-diagnosis.md)，先定位故障边界，再读取相关组件的参考资料。
+- OpenCreators/BattleMe API 域名、BaseURL、`/api` 前缀、Token 校验、MCP 上游 502 或 ALB host 路由：读取 [references/opencreators-api-domain-migration-2026-08-27.md](references/opencreators-api-domain-migration-2026-08-27.md)。
 
 只有精简参考不足以回答当前问题时，才进一步读取详细材料：
 

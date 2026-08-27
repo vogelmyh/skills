@@ -1,4 +1,4 @@
 interface:
   display_name: "LOA Data Pipeline Operations"
-  short_description: "协助 LOA 数据链路发布、回滚与故障定位"
-  default_prompt: "使用 $loa-data-pipeline-ops 安全处理 LOA Crawler-to-Gateway 数据链路的发布、回滚、日志检查或端到端故障定位。"
+  short_description: "协助 LOA 数据链路及 OpenCreators API 运维排障"
+  default_prompt: "使用 $loa-data-pipeline-ops 安全处理 LOA 数据链路的发布、回滚、日志检查、端到端故障，或 OpenCreators API 域名、路径与上游 502 排障。"
