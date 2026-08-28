@@ -8,6 +8,7 @@
 - [`greenfield-requirement-design`](./greenfield-requirement-design/README.md)：为无需保留既有产品行为或源码实现的非平凡全新需求生成经用户确认的冻结规格。
 - [`implement-frozen-spec`](./implement-frozen-spec/README.md)：严格按照已冻结的规格实施并验证候选实现。
 - [`review-spec-implementation`](./review-spec-implementation/README.md)：独立审查候选实现是否满足冻结规格。
+- [`loa-data-pipeline-ops`](./loa-data-pipeline-ops/README.md)：运维、发布、回滚和诊断 LOA Crawler-to-Gateway-to-Agent-Lite 数据链路。
 - [`architecture-boundary-page`](./architecture-boundary-page/README.md)：从代码证据生成单页交互式业务流程与跨组件边界说明，并准备 GitHub Pages 交付。
 
 两个设计 skill 是互斥入口：已有系统的变更使用 `incremental-change-design`，全新产品、服务、组件或独立能力使用 `greenfield-requirement-design`。二者产出相同的 `Status: FROZEN` 规格接口，并与后续两个 skill 组成三段式流程：
@@ -19,6 +20,8 @@ greenfield-requirement-design -------/
 ```
 
 设计、实现和审查应分别在独立 Agent 上下文中运行。阶段之间通过冻结的 `SPEC.md`、边界明确的候选实现及 `REVIEW.md` 交接，不依赖上一阶段的私有对话上下文。
+
+`loa-data-pipeline-ops` 是独立的运维 skill，不属于上述规格设计、实现与审查链路。
 
 ## Repository layout
 
@@ -37,9 +40,26 @@ skills/
 ├── review-spec-implementation/
 │   ├── README.md
 │   └── SKILL.md
-└── architecture-boundary-page/
+├── architecture-boundary-page/
+│   ├── README.md
+│   └── SKILL.md
+└── loa-data-pipeline-ops/
     ├── README.md
-    └── SKILL.md
+    ├── SKILL.md
+    ├── agents/
+    │   └── openai.yaml
+    ├── assets/
+    │   └── agent-lite-tls/
+    └── references/
+        ├── agent-lite/
+        ├── agent-lite-diagnosis.md
+        ├── crawler/
+        ├── crawler-diagnosis.md
+        ├── end-to-end-diagnosis.md
+        ├── environment.md
+        ├── gateway/
+        ├── gateway-diagnosis.md
+        └── deployment-control-plane.md
 ```
 
 每个 skill 的 `SKILL.md` 是 Codex 加载的唯一指令入口，并包含必需的 `name` 与 `description` frontmatter。`README.md` 仅供仓库浏览和维护，不参与 skill 执行。
@@ -62,21 +82,24 @@ $incremental-change-design
 $greenfield-requirement-design
 $implement-frozen-spec
 $review-spec-implementation
+$loa-data-pipeline-ops
 $architecture-boundary-page
 ```
 
-也可以把各 skill 目录复制或链接到个人 skills 目录：
+需要在 Codex 中全局启用时，将个人 skills 目录中的同名入口链接到本仓库内的 skill 目录：
 
-```text
-$HOME/.agents/skills/
+```bash
+ln -s /absolute/path/to/skills/<skill-name> "$HOME/.codex/skills/<skill-name>"
 ```
 
-Codex 会根据 `SKILL.md` 中的 `description` 自动匹配，也支持通过 `$skill-name` 显式调用。
+本仓库内的目录是唯一事实源；`$HOME/.codex/skills/` 只作为 Codex 的全局发现入口，不单独保留或维护副本。Codex 会根据 `SKILL.md` 中的 `description` 自动匹配，也支持通过 `$skill-name` 显式调用。
 
 ## Maintenance rules
 
 - 每个 skill 保持单一职责并可独立加载。
 - skill 目录名应与 `SKILL.md` 的 `name` 一致。
+- 只在本仓库内编辑 skill；不直接修改 `$HOME/.codex/skills/` 中的全局入口。
+- 如果本仓库被移动或重新 clone，重建全局符号链接并重新校验 skill。
 - 指令和行为约束只维护在 `SKILL.md`；README 不复制完整工作流。
 - 仅在有实际用途时增加 `scripts/`、`references/`、`assets/` 或 `agents/`。
 - 提交前检查压缩包、系统元数据和其他临时归档未进入仓库。
