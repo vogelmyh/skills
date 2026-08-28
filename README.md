@@ -9,6 +9,7 @@
 - [`implement-frozen-spec`](./implement-frozen-spec/README.md)：严格按照已冻结的规格实施并验证候选实现。
 - [`review-spec-implementation`](./review-spec-implementation/README.md)：独立审查候选实现是否满足冻结规格。
 - [`loa-data-pipeline-ops`](./loa-data-pipeline-ops/README.md)：运维、发布、回滚和诊断 LOA Crawler-to-Gateway-to-Agent-Lite 数据链路。
+- [`architecture-boundary-page`](./architecture-boundary-page/README.md)：从代码证据生成单页交互式业务流程与跨组件边界说明，并准备 GitHub Pages 交付。
 
 两个设计 skill 是互斥入口：已有系统的变更使用 `incremental-change-design`，全新产品、服务、组件或独立能力使用 `greenfield-requirement-design`。二者产出相同的 `Status: FROZEN` 规格接口，并与后续两个 skill 组成三段式流程：
 
@@ -37,6 +38,9 @@ skills/
 │   ├── README.md
 │   └── SKILL.md
 ├── review-spec-implementation/
+│   ├── README.md
+│   └── SKILL.md
+├── architecture-boundary-page/
 │   ├── README.md
 │   └── SKILL.md
 └── loa-data-pipeline-ops/
@@ -79,6 +83,7 @@ $greenfield-requirement-design
 $implement-frozen-spec
 $review-spec-implementation
 $loa-data-pipeline-ops
+$architecture-boundary-page
 ```
 
 需要在 Codex 中全局启用时，将个人 skills 目录中的同名入口链接到本仓库内的 skill 目录：
