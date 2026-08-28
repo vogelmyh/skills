@@ -1,6 +1,6 @@
 # 环境与访问基线
 
-快照日期：2026-08-25。优先采用更新的 GitHub 代码、用户确认事实和线上只读证据。仓库 clone 可以位于任意目录；用 origin URL 核验身份，不要依赖本机路径。
+快照日期：2026-08-28。优先采用更新的 GitHub 代码、用户确认事实和线上只读证据。仓库 clone 可以位于任意目录；用 origin URL 核验身份，不要依赖本机路径。
 
 ## Crawler
 
@@ -63,6 +63,9 @@ workflow 中仍包含 `test`/`uat` 目标，但它们是历史配置，不代表
 ## Agent Lite
 
 - 仓库：[Lighthunter-PTE-ltd/loa_agent_lite](https://github.com/Lighthunter-PTE-ltd/loa_agent_lite)。
+- 分支模型：`dev` 是受保护的默认开发分支且不触发环境部署；PR 合并到 `test` 会部署 `lc-oc-test-lite`；PR 合并到 `main` 会部署 `lc-oc-prod`。旧 `prod` 分支已于 2026-08-28 重命名为 `main`，旧测试分支 `main` 已重命名为 `test`。
+- GitHub Environment 使用 custom branch policy：`lc-oc-test-lite` 只允许 `test`，`lc-oc-prod` 只允许 `main`。不得仅凭 workflow 内的条件分支推断环境隔离，发布前还要重新核验该策略。
+- 2026-08-28 迁移完成后的分支为 `dev@cb6992a95ed8d96f9c39cacac303c6ac3a051f32`、`test@e410dcdfde59cf8d790d966f506a979e2f99bedc`、`main@36c94f4697dbb46af3fd64c2473167c73e3a03df`；三者 tree 均为 `1c9b1bb1d05f089a40b6b40dfaa298f60f8f0d3a`。迁移期间 `Deploy on merge` 被停用，未产生新的 Action run 或 Environment deployment；这些 SHA 只证明分支内容，不证明服务器运行版本。
 - 测试节点：`lc-oc-test-lite`，运行 `loa-agent-worker.service`、`loa-agent-gateway.service`、`loa-agent-gateway-b.service`。
 - 生产 A：`prod-a`，运行 Worker + Gateway；生产 B：`prod-b`，只运行 Gateway。
 - 生产 A/B 通过 bastion 访问且 OS hostname 相同；日志查询必须使用明确的 `node=prod-a|prod-b`，不能只依赖 hostname。

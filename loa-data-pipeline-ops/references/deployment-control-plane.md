@@ -32,11 +32,14 @@ GitHub Actions 是三个工程发布和版本回滚的唯一执行入口。本�
 
 ## Agent Lite
 
-- 仓库：`Lighthunter-PTE-ltd/loa_agent_lite`；控制面入口：`.github/workflows/release.yml`、`deploy-prerelease.yml`、`deploy-production.yml` 和 `scripts/deploy-release-on-server.sh`。
-- `main` 的成功 Release 会自动部署 prerelease 到测试环境。生产部署为手工 Action；当前 workflow 要求 `ref=prod`，并从 `prod` 分支构建。
-- GitHub Environments 为 `lc-oc-test-lite` 和 `lc-oc-prod`。2026-08-25 快照中二者没有 required-reviewer 等 protection rules。
+- 仓库：`Lighthunter-PTE-ltd/loa_agent_lite`；控制面入口：`.github/workflows/deploy-on-merge.yml`、`.github/workflows/release.yml` 和 `scripts/deploy-release-on-server.sh`。
+- `dev` 是受保护的默认开发分支，不触发环境部署。`Deploy on merge` 只监听合并到 `test` 或 `main` 的 PR closed 事件，并要求 PR 实际已合并。
+- `test` 对应 `lc-oc-test-lite`，`main` 对应 `lc-oc-prod`。Workflow 使用 PR 的 `merge_commit_sha` 作为 `TARGET_SHA`，checkout 后再次核对实际 HEAD，再执行 check、test、Leo runtime smoke、制品构建和部署。
+- GitHub Environments 使用 custom branch policy：`lc-oc-test-lite` 只接受 `test`，`lc-oc-prod` 只接受 `main`。两者在 2026-08-28 核验时没有 required-reviewer 等 protection rules；分支限制不能替代 required reviewer。
+- `test` 使用测试 API key、测试 SSH 目标和测试服务集合；`main` 使用生产 API key、bastion/生产 SSH 目标，并依次部署 `prod-a`、`prod-b`。环境选择、凭据选择、SSH 配置和部署目标都必须使用同一个 `TARGET_BRANCH` 判定，修改分支映射时要整体核对，不能只改 workflow trigger。
 - 生产按 `prod-a` 后 `prod-b` 串行部署，不是跨主机事务。单机脚本的自动 rollback 只恢复该主机备份，且恢复后不重新验证 Gateway health 或 Worker；不得把它视为完整生产回滚。
-- 当前生产 workflow 不接受不可变历史 commit 作为部署输入。除非更新后的 workflow 已提供并核验准确 SHA 入口，否则不得声称 rerun 历史生产 run 会重新部署其原始代码，也不得执行操作员版本回滚。
+- `.github/workflows/release.yml` 的手工 pre-release 只允许从 `test` 运行；stable release 仍由符合 `vX.Y.Z` 的 tag 触发。Release 与环境部署是不同控制面，绿色 Release 不证明测试或生产服务器已更新。
+- 2026-08-28 分支迁移时先停用 `Deploy on merge`，再通过受保护分支 PR 依次同步 `dev -> test -> main`，最后恢复 workflow。迁移后的 `dev`、`test`、`main` tree 均为 `1c9b1bb1d05f089a40b6b40dfaa298f60f8f0d3a`，且迁移没有产生新的 Action run 或 Environment deployment；不得将此次控制面变更表述为一次应用部署。
 
 ## 快照与历史证据
 
