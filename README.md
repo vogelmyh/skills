@@ -8,6 +8,7 @@
 - [`greenfield-requirement-design`](./greenfield-requirement-design/README.md)：为无需保留既有产品行为或源码实现的非平凡全新需求生成经用户确认的冻结规格。
 - [`implement-frozen-spec`](./implement-frozen-spec/README.md)：严格按照已冻结的规格实施并验证候选实现。
 - [`review-spec-implementation`](./review-spec-implementation/README.md)：独立审查候选实现是否满足冻结规格。
+- [`architecture-boundary-page`](./architecture-boundary-page/README.md)：从代码证据生成单页交互式业务流程与跨组件边界说明，并准备 GitHub Pages 交付。
 
 两个设计 skill 是互斥入口：已有系统的变更使用 `incremental-change-design`，全新产品、服务、组件或独立能力使用 `greenfield-requirement-design`。二者产出相同的 `Status: FROZEN` 规格接口，并与后续两个 skill 组成三段式流程：
 
@@ -33,7 +34,10 @@ skills/
 ├── implement-frozen-spec/
 │   ├── README.md
 │   └── SKILL.md
-└── review-spec-implementation/
+├── review-spec-implementation/
+│   ├── README.md
+│   └── SKILL.md
+└── architecture-boundary-page/
     ├── README.md
     └── SKILL.md
 ```
@@ -58,6 +62,7 @@ $incremental-change-design
 $greenfield-requirement-design
 $implement-frozen-spec
 $review-spec-implementation
+$architecture-boundary-page
 ```
 
 也可以把各 skill 目录复制或链接到个人 skills 目录：
