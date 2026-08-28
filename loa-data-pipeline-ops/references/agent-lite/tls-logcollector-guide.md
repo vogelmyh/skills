@@ -1,7 +1,7 @@
 # Agent Lite 日志接入 BytePlus TLS 指南
 
 - **状态：** PROD AGENT JOURNAL COLLECTION VERIFIED（Worker：prod-a；Gateway：prod-a/prod-b）
-- **最后更新：** 2026-08-25
+- **最后更新：** 2026-08-28
 - **适用组件：** `loa_agent_lite`
 - **目标节点：** `lc-oc-test-lite`、`prod-a`、`prod-b`
 - **文档性质：** 人工配置指南、安装资产、风险边界与验收基线
@@ -152,22 +152,17 @@ log_type=application
 
 ## 5. 人工实施步骤
 
-### 5.0 生产 SSH 连接基线
+### 5.0 生产访问通道绑定
 
-本机生产别名应通过 `~/.ssh/config` 的 include 文件解析为：`lc-oc-prod-bastion` 访问公网堡垒机，`lc-oc-prod-lite-a|b` 使用 `ProxyJump lc-oc-prod-bastion` 访问两个私网节点。三个生产别名使用同一生产客户端身份，与测试身份不同；知识库不得记录身份文件路径。
+生产拓扑、逻辑节点和可移植绑定规则见 [生产访问通道与可移植绑定](../access-channel.md)。本指南不规定 `~/.ssh/config` 结构或 SSH alias；每位使用者必须用自己的获批个人身份，将 `agent-lite-prod-a|agent-lite-prod-b` 绑定到安全堡垒机、BytePlus 受控会话或其他批准通道。SSH 用户、身份文件路径、密钥内容和个人 alias 都不得进入 Skill。
 
-2026-08-24 已为三个生产别名配置稳定 `HostKeyAlias` 和 `StrictHostKeyChecking yes`，并按别名固定 ED25519 host key。日常连接直接使用：
-
-```bash
-ssh lc-oc-prod-lite-a
-ssh lc-oc-prod-lite-b
-```
+2026-08-28 曾由一位获批操作员从 BytePlus 云助手与实际连接路径核验安全堡垒机和生产 A/B 的主机指纹，并完成非交互登录测试。该证据证明当时共享拓扑可用，不证明另一位使用者的绑定已经配置或获批。
 
 若出现 authenticity prompt、host identification changed、`UNKNOWN port 65535` 或连接超时：
 
-1. 用 `ssh -G <alias>` 只核验 `hostname`、`proxyjump`、`hostkeyalias`、`stricthostkeychecking` 和 `identitiesonly`，不要输出 `identityfile`。
+1. 用 `ssh -G <当前使用者的-host-token>` 只核验 `hostname`、`port`、`proxyjump`、`hostkeyalias`、`stricthostkeychecking` 和 `identitiesonly`，不要输出 `user` 或 `identityfile`。
 2. authenticity prompt 是服务器 host key 关口，不表示选错客户端生产私钥；必须经可信控制台核验指纹后再固定。
-3. 不要设置 `ProxyJump=none`；这会让本机直接连接 `10.0.1.218/219` 并超时。
+3. 不要禁用获批跳板路由；私网地址在普通客户端网络中通常不可达，直连失败不能证明目标 sshd 异常。
 4. `UNKNOWN port 65535` 常是 ProxyJump 前置连接失败后的包装错误，不是目标 SSH 端口真的变为 65535。
 5. host key 变化时立即停止，先核验实例是否重建或密钥是否轮换，不得删除旧记录后盲目接受。
 
@@ -191,7 +186,7 @@ journalctl --disk-usage
 
 ### 5.2 在测试节点安装 exporter
 
-以下是主机状态变更。先取得对 `lc-oc-test-lite` 的明确授权，再将 `<skill-root>` 替换为当前 Skill 根目录：
+以下是主机状态变更。先取得对逻辑目标 `agent-lite-test` 的明确授权，再将 `<skill-root>` 替换为当前 Skill 根目录：
 
 ```bash
 sudo install -m 0755 \

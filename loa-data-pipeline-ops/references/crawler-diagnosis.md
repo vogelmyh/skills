@@ -2,9 +2,9 @@
 
 代码仓库：[Lighthunter-PTE-ltd/loa-glabal-crawler](https://github.com/Lighthunter-PTE-ltd/loa-glabal-crawler)。当前快照记录的告警实现为 [`prod@f503869ce90b5f389ced6297f052e159787dbea4`](https://github.com/Lighthunter-PTE-ltd/loa-glabal-crawler/tree/f503869ce90b5f389ced6297f052e159787dbea4)；使用本地 clone 时先核验 origin，实际运行的 JAR 仍必须单独核验。
 
-## 人工日志协作
+## 生产只读日志访问
 
-人工操作员使用获批密钥进入 BytePlus 和生产服务器后，只提供限定时间范围的必要命令。常用只读命令包括：
+当前请求明确要求 Crawler 生产诊断时，先按 [access-channel.md](access-channel.md) 将逻辑目标 `crawler-prod` 绑定到当前使用者已获批的 SSH、BytePlus 会话或专用只读工具。Skill 不要求固定 SSH alias；没有可用绑定时由获批操作员执行命令并回传脱敏结果。不得索取或读取访问密钥、profile 凭据、`.env`，不得绕过 host key、堡垒机或网络边界，也不得执行任何状态变更。常用只读命令包括：
 
 ```bash
 systemctl status loa-global-crawler.service --no-pager
@@ -28,7 +28,7 @@ curl --fail --silent http://127.0.0.1:8080/actuator/health
 3. **采集器上传：** heartbeat 正常、rule/harvester 数为 1，成功请求/日志计数增加，失败和丢弃计数为 0。
 4. **TLS 可检索：** 在正确 Topic 中、覆盖日志产生时间的查询窗口内，空查询可以返回日志；随后再按固定字段或关键字过滤。
 
-人工操作员可在生产主机执行以下只读检查：
+具备获批访问通道时，可在生产主机执行以下只读检查：
 
 ```bash
 systemctl is-active logcollectord.service

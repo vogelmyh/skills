@@ -24,6 +24,7 @@ description: 运维、发布、回滚和诊断 LOA Crawler-to-Gateway-to-Agent-L
 随附 `references/` 是可移植的运维知识快照，不要求外部 `loa-data-pipeline-ops` 目录。仅按当前模式读取必要的参考资料：
 
 - 环境、分支、主机、端口、服务或日志位置：读取 [references/environment.md](references/environment.md)。
+- 需要访问服务器、核验当前执行环境的连接能力或为他人准备访问步骤：读取 [references/access-channel.md](references/access-channel.md)。使用逻辑目标，不假定任何固定 SSH 别名、用户名或身份文件。
 - 发布或版本回滚：读取 [references/environment.md](references/environment.md) 和 [references/deployment-control-plane.md](references/deployment-control-plane.md)，再读取目标 SHA 对应的当前 workflow、部署脚本和近期 run；不要从参考资料复制执行步骤。
 - Crawler 告警、采集、TOS、MQ 发布或 Crawler 日志：读取 [references/crawler-diagnosis.md](references/crawler-diagnosis.md)。
 - Gateway MQ、TOS 导入、PostgreSQL、DLQ、用户/头像、手动导入、Gateway 日志或 BytePlus TLS/LogCollector：读取 [references/gateway-diagnosis.md](references/gateway-diagnosis.md)。
@@ -45,7 +46,7 @@ description: 运维、发布、回滚和诊断 LOA Crawler-to-Gateway-to-Agent-L
 
 - **说明/评估：** 根据代码、文档和只读状态作答，不做任何变更。
 - **诊断：** 收集只读证据并定位故障边界。除非用户明确要求，否则不实施修复。
-- **日志协作：** 为人工操作员生成范围严格的只读命令集，然后只分析返回的脱敏输出。
+- **日志核验：** 先把逻辑目标绑定到当前执行环境中已批准的访问通道；通道可用时执行范围严格的只读查询，否则为获批操作员生成命令并只分析脱敏输出。
 - **发布：** 在安全范围内自动准备和验证；只有获得明确授权后，才执行指定的生产变更。
 - **回滚/恢复：** 以只读方式确定已知良好目标及恢复后果；只有获得明确授权后才执行。
 - **代码变更：** 先检查并讨论兼容性。除非用户明确要求，否则不编辑；不得借助此运维技能绕过尚未解决的设计决策。
@@ -72,7 +73,11 @@ description: 运维、发布、回滚和诊断 LOA Crawler-to-Gateway-to-Agent-L
 
 授权必须建立在充分知情的基础上，并绑定具体目标。最终 Go/No-Go 前，应展示组件、环境、准确的 PR/SHA 或 run/attempt、影响、验证方式、兜底方案和停止条件。“全部执行”之类的笼统表述，或在披露新发现的能力缺失/生产风险前提出的执行请求，都不构成对该变化风险的授权。不得绕过受保护分支检查、直接推送生产分支，或为图方便启用 auto-merge。
 
-生产日志访问由人工把关：必须由人进入 BytePlus 并使用获批密钥。绝不索取、存储、回显或代管该密钥。只提供命令和结果解读，不假设 AI 能直接访问生产主机。
+生产主机允许受控只读访问。当当前请求明确以生产诊断、日志核验或运行状态核验为目标时，先按 [references/access-channel.md](references/access-channel.md) 将逻辑目标绑定到当前执行环境中已批准、可用的访问通道。Skill 不规定固定 SSH 别名、SSH 用户、身份文件或本机目录；每位使用者可以使用自己的 SSH host token、`ProxyJump`、云控制台会话或专用只读工具。通道和目标身份核验通过后，可以执行范围严格的非交互查询；通道缺失时改为人工日志协作，不得借用或猜测他人的本机配置。
+
+生产访问必须保持只读：允许查询服务状态、版本、进程、监听端口、文件元数据、限定时间窗日志以及已知无副作用的 health/readiness 接口；禁止重启、停止、reload、kill、写文件、重定向输出、改权限、安装软件、部署、上传、清理、修改配置，以及 RabbitMQ/DLQ、TOS、PostgreSQL、Redis 或其他数据存储的任何写操作。不得使用应用读写凭据冒充只读数据库访问。SSH 登录产生的远端认证审计日志属于访问通道固有副作用，不视为授权扩大。
+
+绝不索取、存储、回显或代管私钥、Token、Webhook、数据库/MQ URL 或其他秘密；不得读取 `.env` 值、`printenv`、完整配置或不受限的业务 payload。若既有访问通道不可用、出现新的凭据/权限需求、host key 变化、目标身份不明，或完成诊断需要任何状态变更，应停止并请求人工处理或新的明确授权。
 
 ## 不可违背的约束
 
@@ -105,4 +110,5 @@ description: 运维、发布、回滚和诊断 LOA Crawler-to-Gateway-to-Agent-L
 - Gateway 变更可能造成混合版本数据语义；
 - 回滚目标无法关联到已核验的提交和成功 run，或当前 workflow 不能检出该准确 SHA；
 - 所需证据会暴露密钥，或要求 AI 代管生产密钥；
+- 当前执行环境无法把逻辑目标绑定到已批准通道，或绑定结果与共享资源/网络拓扑冲突；
 - 诊断进入重放或数据修复阶段：必须重新进入证据与授权关口；若架构决策尚未解决，则另行停止。

@@ -1,21 +1,21 @@
 # Agent Lite 接管知识底稿
 
-更新日期：2026-08-25
+更新日期：2026-08-28
 
-本文整理 `loa_agent_lite` 的完整工程职责、数据依赖、发布方式、运行边界和故障定位入口。它基于仓库代码、文档、workflow、GitHub Actions 证据，以及 2026-08-22 经授权取得的一次服务器只读快照；运行时结论具有时效性，也不是改造方案。
+本文整理 `loa_agent_lite` 的完整工程职责、数据依赖、发布方式、运行边界和故障定位入口。主体证据来自 2026-08-22 的仓库、GitHub Actions 和服务器只读快照，并在 2026-08-28 补充当前分支/访问控制面。历史 run、旧分支名和原操作者工作区只描述当时时点；当前发布映射以 [deployment-control-plane.md](../deployment-control-plane.md) 为准，访问绑定以 [access-channel.md](../access-channel.md) 为准。
 
 ## 1. 资料、仓库身份与证据基线
 
 代码仓库：`Lighthunter-PTE-ltd/loa_agent_lite`。
 
-2026-08-22 已执行 `git fetch origin --prune` 并核验：
+2026-08-22 原操作者执行 `git fetch origin --prune` 并核验的历史基线：
 
 - `origin/main@d2fcbf50ea970d6e778a6b8cdab4ec8997f95b81`
 - `origin/prod@47405c886270ce814836698d0a2688b9ed9d81af`
-- `origin/prod` 是 `origin/main` 的直接祖先；当前 `main` 比 `prod` 多一个 `d2fcbf5` 提交。
-- 本地 `main@263c5466926b01b6c6801e5d1528cd808bc5816a` 工作区干净，但比 `origin/main` 落后 20 个提交。因此本轮静态结论以刷新后的远端 refs 为准，不把本地 checkout 当作当前分支状态。
+- 当时 `origin/prod` 是 `origin/main` 的直接祖先，`main` 比 `prod` 多一个 `d2fcbf5` 提交；这些旧分支名已被 2026-08-28 的分支迁移取代。
+- 原操作者本地 `main@263c5466926b01b6c6801e5d1528cd808bc5816a` 工作区干净，但比当时 `origin/main` 落后 20 个提交。该信息不描述其他使用者的 clone，也不得作为当前分支状态。
 
-当前主要证据来源：
+2026-08-22 历史证据来源：
 
 1. `origin/main` / `origin/prod` 的代码、README、文档和 workflow。
 2. `.github/workflows/release.yml`、`deploy-prerelease.yml`、`deploy-production.yml`。
@@ -221,10 +221,9 @@ Crawler
 
 ### Release
 
-- `main` push 会运行 `Release`：Bun 1.3.13、依赖安装、TypeScript check、全部 `bun test`、Leo runtime smoke、dashboard/release 制品构建。
-- `main` 使用可变 `prerelease` tag/release；每次成功会删除旧 release、强制移动 tag 并发布新资产。
-- `vX.Y.Z` tag 生成 stable release，tag 版本必须等于根 `package.json` version。
-- stable release 与生产部署是两条独立路径；生产 workflow 直接从 `prod` 分支构建，不要求使用 stable tag 资产。
+- 2026-08-28 当前控制面中，环境部署由合并到 `test` 或 `main` 的 PR 触发；workflow 使用 `merge_commit_sha` 作为 `TARGET_SHA` 并在 checkout 后复核。
+- 手工 pre-release 只允许从 `test` 运行；符合 `vX.Y.Z` 的 tag 仍生成 stable release。Release 与环境部署是两条独立路径，绿色 Release 不证明测试或生产节点已更新。
+- 2026-08-22 的 `main` prerelease、`workflow_run` 测试部署和旧 `prod` 手工生产 workflow 只作为下文历史证据，不能作为当前入口。
 
 ### 测试环境
 
@@ -237,24 +236,18 @@ Crawler
 - `loa-agent-gateway-b`：`18766`
 - 部署根目录：`/opt/light_hunter/loa_agent_lite`
 
-2026-08-22 本机 SSH 配置解析结果：
+用户于 2026-08-22 确认：资源公网 IP `101.47.17.169` 和私网 IP `172.31.47.34` 属于同一测试节点。2026-08-28 共享访问拓扑迁移为经统一安全堡垒机访问私网目标；原操作者的 alias 不属于共享事实。当前使用者应按 [access-channel.md](../access-channel.md) 绑定逻辑目标 `agent-lite-test`。
 
-- SSH 别名：`lc-oc-test-lite`
-- SSH 目标：`101.47.17.169:22`
-- 未配置 `ProxyJump`
-
-用户于 2026-08-22 确认：`101.47.17.169` 和 `172.31.47.34` 属于同一台 `lc-oc-test-lite` 服务器，前者是公网 IP，后者是私网 IP。
-
-成功的 `Release` workflow_run 会自动触发 `Deploy Pre-release`。手工触发部署则下载当前浮动 `prerelease` 资产，因此操作前必须先将资产关联到准确的 Release run/SHA，不能只依据 workflow checkout。
+当前部署入口是 PR 合并到 `test` 后触发 `Deploy on merge`；2026-08-22 的 `Release -> Deploy Pre-release` 关系只保留为历史 run 证据。
 
 ### 生产环境
 
-仓库静态资料和 2026-08-22 本机 SSH 配置共同确认：
+仓库、云资源资料和 2026-08-28 共享拓扑确认：
 
 - GitHub environment：`lc-oc-prod`
-- bastion SSH 别名：`lc-oc-prod-bastion`，公网目标 `101.47.157.73:22`
-- `prod-a` SSH 别名：`lc-oc-prod-lite-a`，私网目标 `10.0.1.218:22`，通过 `ProxyJump lc-oc-prod-bastion`
-- `prod-b` SSH 别名：`lc-oc-prod-lite-b`，私网目标 `10.0.1.219:22`，通过 `ProxyJump lc-oc-prod-bastion`
+- 统一安全堡垒机：公网 `207.166.168.129:22222`；生产节点不对公网暴露 SSH。
+- `prod-a`：私网 `10.0.1.218:22`，经安全堡垒机或 BytePlus 受控会话访问。
+- `prod-b`：私网 `10.0.1.219:22`，经安全堡垒机或 BytePlus 受控会话访问。
 - `prod-a`：`loa-agent-worker` + `loa-agent-gateway`
 - `prod-b`：`loa-agent-gateway`
 - 用户确认生产 `prod-a` / `prod-b` 前方配置了统一的 BytePlus ALB：实例名 `prod-public-alb`，私网 IP `10.0.0.76`，公网 IP `101.47.23.252`，对外监听 `HTTPS:443`，后端端口 `18765`。ALB 配置没有明确标注后端协议；仓库和运行时只证明该端口上的 Agent Lite Gateway 提供 HTTP 服务，不能替代 ALB 配置证据。
@@ -262,10 +255,11 @@ Crawler
 - 后端权重为 `prod-a=100`、`prod-b=100`，调度算法为加权轮询 `WRR`，会话保持未开启。配置层面为等权轮询，但长连接和连接复用仍可能使实际请求分布不完全均分；同一用户的连续请求可能落到不同 Gateway，正确性依赖 PostgreSQL lease 和 Redis session lock，而不是 ALB 粘性。
 - 两台 Gateway 默认均检查 `127.0.0.1:18765/health`
 - 只有 bastion 具有公网入口；两个生产应用节点没有公网 IP，必须经 bastion 访问。
+- 2026-08-28 曾由一位获批操作员核验新堡垒机和 A/B 的 ED25519 主机指纹，并完成非交互登录测试；其他使用者仍需独立绑定并核验自己的通道。
 
-知识库只记录别名、地址、端口和跳板关系，不记录 SSH 用户、IdentityFile 或私钥内容。SSH 配置存在不代表 AI 已获授权连接生产主机；生产访问仍遵循逐次授权和人工门禁。
+知识库只记录逻辑目标、云资源、地址、端口和跳板关系，不记录 SSH alias、用户、`IdentityFile` 或私钥内容。当前请求明确要求生产诊断时，按 [access-channel.md](../access-channel.md) 绑定 `agent-lite-prod-a|agent-lite-prod-b`；通道存在不授权状态变更、凭据读取、交互式无边界排查或绕过 host key/跳板机。
 
-`prod` push 不自动部署。`Deploy Production` 只能手工触发，必须输入 `ref=prod` 并确认生产部署。Workflow 会从 `prod` 重新执行 check、test、smoke 和制品构建，然后先部署 `prod-a`，成功后再部署 `prod-b`。
+当前 `Deploy on merge` 在 PR 合并到 `main` 后执行生产 check、test、smoke、制品构建，并先部署 `prod-a`、再部署 `prod-b`。准确触发条件、目标 SHA 和 GitHub Environment 必须在每次操作前从当前 workflow 重新核验。
 
 ## 9. 服务器部署脚本与失败语义
 
@@ -292,9 +286,9 @@ Crawler
 - 备份是代码目录快照，不是不可变制品注册表；`.env` 被包含在备份中但新 release 同步时被保留。
 - 仓库没有核心 `loa-agent-worker` / `loa-agent-gateway` systemd unit，无法静态确认启动命令、EnvironmentFile、Restart、TimeoutStopSec、stdout/stderr 去向和资源限制。
 
-## 10. GitHub Actions 实证
+## 10. GitHub Actions 历史实证（2026-08-20 至 2026-08-22）
 
-### 当前 main / prerelease
+### 当时的 main / prerelease
 
 `Release` run `32453476140`，attempt 1：
 
@@ -309,7 +303,7 @@ Crawler
 - head SHA：同一 `d2fcbf5...`
 - Download、checksum、SSH、upload、server deploy 和 cleanup 全部成功。
 
-这证明当前 `main` 对应的 CI、prerelease 制品和测试环境部署 workflow 已成功。随后 2026-08-22 的运行时摘要又确认测试服务器内容匹配该 SHA，但 systemd 进程和版本一致仍不证明 Worker、数据库、MQ、模型或 Fan Radar 数据路径健康。
+这证明 2026-08-22 当时 `main` 对应的 CI、prerelease 制品和测试环境部署 workflow 已成功。随后同日运行时摘要又确认测试服务器内容匹配该 SHA，但 systemd 进程和版本一致仍不证明 Worker、数据库、MQ、模型或 Fan Radar 数据路径健康。
 
 ### 最近一次已查到的生产部署
 
@@ -326,11 +320,11 @@ Crawler
 
 ## 11. 发布与回滚操作边界
 
-- `main` 合并/推送会自动发布并部署测试环境，属于会改变共享测试服务器状态的操作；执行前仍应确认影响。
-- `prod` 分支变更与生产部署是两个关口。分支已更新不代表已部署。
-- 生产发布前必须锁定 `origin/prod` 完整 SHA、目标 run、两台主机、预期服务和当前已知良好版本。
+- PR 合并到 `test` 会部署共享测试环境，合并到 `main` 会部署生产环境；两者都会改变远端状态，执行前必须确认影响并核验当前 workflow。
+- 分支已更新、workflow 已触发和服务器已部署是不同证据层级；不能用前一层替代后一层。
+- 生产发布前必须锁定 `origin/main` 完整 SHA、目标 run、两台主机、预期服务和当前已知良好版本。
 - 生产 A/B 串行部署，需要明确 B 失败后的 A 主机恢复决策；不能把单机脚本 rollback 当作跨主机自动回滚。
-- 当前生产 workflow 只接受 `ref=prod` 并检出该分支，不能直接绑定不可变历史 commit。除非 workflow 已更新并核验准确 SHA 入口，否则不得声称 rerun 历史生产 run 会重新部署其原始代码；操作员版本回滚应停止并报告该控制面缺口。
+- 版本回滚前必须证明当前 workflow 能绑定准确的已知良好 SHA；不能仅依据历史 run 页面、旧 `prod` 分支名或浮动分支推断 rerun 会部署原始代码。无法证明时停止并报告控制面缺口。
 - 单机脚本自动 rollback 只在该主机部署命令失败后尝试；必须再人工核验实际文件、依赖、systemd、Gateway health、Worker 和数据路径。
 - 任何生产 deploy、restart、rollback、数据库修正、RabbitMQ 干预、报告重生成或用户数据清理都需单独明确授权。
 

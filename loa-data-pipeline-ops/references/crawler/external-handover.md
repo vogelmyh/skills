@@ -8,6 +8,8 @@
 
 适用对象：接手 `loa-global-crawler` 开发、运维、数据接入或故障排查的外部同学。
 
+归档说明：本文是 2026-08-19 的原始交接快照。文中的“当前”“本地仓库”“当前用户主工作区”和分支脏状态只指原操作者当时的工作区，不描述 Skill 使用者的机器，也不能替代当前仓库、GitHub 或运行时核验。可共享运维入口以本 Skill 的 `SKILL.md`、`references/environment.md` 和 `references/access-channel.md` 为准。
+
 
 
 安全说明：本文不包含服务器私钥、数据库密码、Redis/RabbitMQ/TOS 凭据、Euler Key、OAuth Secret、LLM Key、Token 或内网地址。需要凭据时，请通过项目负责人和 GitHub Secrets 的正式流程获取。
@@ -42,11 +44,11 @@
 
 
 
-### 本地仓库状态
+### 2026-08-19 原操作者工作区状态
 
 
 
-- **当前用户主工作区不是干净状态，不能直接提交或发布。**
+- **原操作者当时的主工作区不是干净状态，不能从该工作树直接提交或发布。**
 
 - 当前本地分支：`codex/fix-gift-chat-service-wiring`，HEAD `bbfd321`，远端同名分支也是该提交，没有未 push 的 commit。
 
@@ -737,7 +739,7 @@ GET https://crawler.loa.services/api/monitoring/status
 
 6. 历史 TOS 错误目录或已发送错误 MQ 不会被新代码自动迁移。
 
-7. 当前本地主工作区有残留文件，任何发布都必须从干净 worktree 开始。
+7. 2026-08-19 原操作者工作区有残留文件；这不描述其他使用者的 clone，但任何发布仍必须从经核验的干净 worktree 开始。
 
 
 
@@ -839,4 +841,4 @@ GET https://crawler.loa.services/api/monitoring/status
 
 - 不输出凭据，不将本地临时文件或历史对话中的 Key 带入 Git。
 
-- 对当前本地主工作区只读审计，除非项目负责人明确授权清理。
+- 对任何使用者的现有工作区都先只读审计；除非项目负责人明确授权，不清理、不提交与当前任务无关的残留。

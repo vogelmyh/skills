@@ -69,7 +69,7 @@ workflow 中仍包含 `test`/`uat` 目标，但它们是历史配置，不代表
 - 测试节点：`lc-oc-test-lite`，运行 `loa-agent-worker.service`、`loa-agent-gateway.service`、`loa-agent-gateway-b.service`。
 - 生产 A：`prod-a`，运行 Worker + Gateway；生产 B：`prod-b`，只运行 Gateway。
 - 生产 A/B 通过 bastion 访问且 OS hostname 相同；日志查询必须使用明确的 `node=prod-a|prod-b`，不能只依赖 hostname。
-- 2026-08-24，本机三个生产 SSH 别名已配置稳定 `HostKeyAlias`、`StrictHostKeyChecking yes` 和既有 `ProxyJump`，对应 ED25519 host key 已按别名固定；普通 A/B 连接已验证。生产客户端身份与测试身份不同，A/B 与堡垒机使用同一生产身份；禁止记录或输出身份文件路径。
+- 2026-08-28，共享访问拓扑迁移到统一安全堡垒机，测试与生产节点使用私网目标；当时已通过一位获批操作员的独立通道验证 test、生产 A/B 与堡垒机连接。该结果只证明拓扑在该时间点可用，不规定其他使用者的 SSH alias、账号或身份文件。
 - 部署根目录：`/opt/light_hunter/loa_agent_lite`。
 - 2026-08-22 运行快照确认核心服务 stdout/stderr 写入 journald；当时没有稳定的 Agent Lite 应用日志文件或集中日志运行证据。
 
@@ -109,11 +109,18 @@ workflow 中仍包含 `test`/`uat` 目标，但它们是历史配置，不代表
 
 详细人工配置见 [agent-lite/tls-logcollector-guide.md](agent-lite/tls-logcollector-guide.md)，安装资产位于 [../assets/agent-lite-tls/](../assets/agent-lite-tls/)；本文只保留诊断所需摘要。
 
+## 共享访问拓扑（2026-08-28）
+
+逻辑目标、云资源身份、地址/端口和安全堡垒机路由统一维护在 [access-channel.md](access-channel.md)。该文档明确区分团队可共享的环境事实与每位使用者自己的访问绑定；不要在此复制个人 `~/.ssh/config`、SSH alias、账号或身份文件路径。
+
+2026-08-28 曾从 BytePlus 云助手与一条获批 SSH 路径双向核验新堡垒机和 Gateway 的 ED25519 主机指纹，并验证所有逻辑目标可达。该时间点证据不自动迁移到另一台机器或另一位使用者；新使用者必须独立绑定并核验自己的访问通道。若主机指纹、目标身份或共享拓扑变化，应立即停止，不得盲目接受新指纹或绕过跳板机。
+
 ## 访问与日志处理
 
-- 由人工进入 BytePlus 控制台，并使用获批密钥访问服务器。
-- AI 提供限定时间范围的只读命令，并分析脱敏后的输出。
-- Gateway 没有公网 IP；绝不把本机直接 SSH 作为默认访问路径。
+- 当前请求明确以生产诊断、日志或运行状态核验为目标时，先按 [access-channel.md](access-channel.md) 把逻辑目标绑定到当前执行环境中已获批的 SSH、云控制台会话或专用只读工具；Skill 不要求固定 alias。绑定可用时优先执行准确目标、准确命令的非交互查询，否则转为人工协作。
+- 生产访问严格只读。允许服务状态、版本、进程、监听端口、文件元数据、限定时间窗日志和已知无副作用的 health/readiness 查询；禁止服务控制、文件或配置写入、部署、上传、安装、权限修改及任何数据库、MQ、TOS、Redis 写操作。
+- Gateway 没有公网 IP；只能使用已经获批并实际可用的跳板机、云控制台或内部通道，不得尝试直接连接私网 IP，也不得为完成诊断临时绕过网络或 host key 边界。
+- 现有通道不可用、host key 变化、目标身份不明或需要新增凭据/权限时停止。不得索取、保存、回显或代管凭据。
 - 绝不索取或保存私钥、Token、Webhook、数据库/RabbitMQ URL、`.env` 输出、`printenv` 或不受限的配置转储。
 - 不要大范围打开或打印已知含密钥的 profile/property 文件或完整 Action 日志。核验配置接线时，只检查配置键名称及存在性；任何内容进入对话前，先使用仅返回文件名的搜索或值脱敏工具。
 - 完整 Gateway 事件日志含有用户/直播数据。分享前必须按时间和 eventId、manifestPath、roomId、sessionId 或 part 过滤；绝不索取整个文件或完整 MQ 消息体。

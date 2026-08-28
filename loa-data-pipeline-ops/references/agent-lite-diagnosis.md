@@ -2,9 +2,9 @@
 
 代码仓库：[Lighthunter-PTE-ltd/loa_agent_lite](https://github.com/Lighthunter-PTE-ltd/loa_agent_lite)。Agent Lite 包含 Worker、Realtime Gateway、Gateway B、Agent runtime 和 Fan Radar。使用本地 clone 时先核验 origin；静态代码、历史运行快照和当前生产状态必须分开表述。
 
-## 人工日志协作
+## 生产只读日志访问
 
-Agent Lite 核心服务当前已知日志入口是 journald。生产访问由人工通过 BytePlus 和获批密钥完成；AI 只提供时间和 unit 范围严格的命令，不索取 SSH 密钥或 `.env`。
+Agent Lite 核心服务当前已知日志入口是 journald。当前请求明确要求生产诊断时，先按 [access-channel.md](access-channel.md) 将 `agent-lite-prod-a|agent-lite-prod-b` 绑定到当前使用者已获批的 SSH、BytePlus 会话或专用只读工具；Skill 不要求固定 SSH alias。不得索取 SSH 密钥、读取 `.env` 值、绕过 host key 或跳板机，也不得执行服务控制、文件写入、部署或数据存储写操作。
 
 常用只读命令：
 
@@ -17,23 +17,13 @@ journalctl -u loa-agent-gateway.service --since '<start>' --until '<end>' --no-p
 journalctl -u loa-agent-gateway-b.service --since '<start>' --until '<end>' --no-pager
 ```
 
-生产 A/B 的 OS hostname 相同。每项日志证据必须同时标注 `node=prod-a|prod-b` 或操作员使用的准确 SSH 别名，不能只记录 hostname。分享前按 request ID、run ID、session ID、GUID、日期和时间窗裁剪；不得索取不受限 journal、原始用户消息、Agent audit payload、数据库内容或 `.env`。
+生产 A/B 的 OS hostname 相同。每项日志证据必须标注逻辑节点 `node=prod-a|prod-b`，不能只记录 hostname，也不要把某位使用者的 SSH alias 当成共享节点身份。输出前按 request ID、run ID、session ID、GUID、日期和时间窗在远端裁剪；不得读取或回传不受限 journal、原始用户消息、Agent audit payload、数据库内容或 `.env`。
 
-## 生产 SSH 连接
+## 生产访问通道
 
-使用 `lc-oc-prod-lite-a|b` 的既有 `ProxyJump lc-oc-prod-bastion`，不要直接连接私网 IP，也不要用 `ProxyJump=none`。2026-08-24 已确认本机生产身份与测试身份不同，A/B 和堡垒机使用同一生产身份；身份文件路径不得进入输出或知识库。
+共享拓扑要求生产 A/B 经安全堡垒机或 BytePlus 受控会话访问，不把私网 IP 直连作为默认路径。每位使用者自行维护获批的 SSH host token、账号和身份；这些值不进入 Skill。SSH 场景可用 `ssh -G <当前使用者的-host-token>` 只读核验 `hostname`、`port`、`proxyjump`、`hostkeyalias`、`stricthostkeychecking` 和 `identitiesonly`，不要输出 `user` 或 `identityfile`。
 
-三个生产别名已经配置稳定 `HostKeyAlias`、`StrictHostKeyChecking yes` 并固定 ED25519 host key。连接异常时只读核验：
-
-```bash
-ssh -G lc-oc-prod-bastion | awk '$1=="hostname" || $1=="hostkeyalias" || $1=="stricthostkeychecking" || $1=="identitiesonly"'
-ssh -G lc-oc-prod-lite-a | awk '$1=="hostname" || $1=="proxyjump" || $1=="hostkeyalias" || $1=="stricthostkeychecking" || $1=="identitiesonly"'
-ssh-keygen -F lc-oc-prod-bastion
-ssh-keygen -F lc-oc-prod-lite-a
-ssh-keygen -F lc-oc-prod-lite-b
-```
-
-首次 authenticity prompt 校验的是服务器 host key，不是客户端私钥。必须从可信控制台独立核验后再固定；host key 变化时停止并核验实例/轮换事实。`UNKNOWN port 65535` 可能只是 ProxyJump 前置失败的包装错误。若本机直连私网 IP 超时，应先确认没有错误禁用 ProxyJump；不要据此误判目标 sshd。2026-08-24 的只读实证显示堡垒机到 `10.0.1.218/219:22` 均可达，普通别名连接均成功。
+首次 authenticity prompt 校验的是服务器 host key，不是客户端私钥。必须从可信控制台独立核验后再固定；host key 变化时停止并核验实例/轮换事实。`UNKNOWN port 65535` 可能只是 ProxyJump 前置失败后的包装错误。私网 IP 直连超时通常只说明当前网络没有该路由，不得据此误判目标 sshd。2026-08-28 曾由一位获批操作员验证安全堡垒机到 `10.0.1.218/219:22` 可达；其他使用者仍需独立核验自己的绑定。
 
 ## BytePlus TLS 日志采集
 

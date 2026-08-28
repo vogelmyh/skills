@@ -2,9 +2,9 @@
 
 代码仓库：[Lighthunter-PTE-ltd/loa-data-gateway](https://github.com/Lighthunter-PTE-ltd/loa-data-gateway)。2026-08-21 已复核的静态代码快照为 [`main@f583e90a1e7428fa78737d2719a4c3371eea9da6`](https://github.com/Lighthunter-PTE-ltd/loa-data-gateway/tree/f583e90a1e7428fa78737d2719a4c3371eea9da6)；使用本地 clone 时先核验 origin，采取操作前还应核验更新的仓库和运行时状态。
 
-## 人工日志协作
+## 生产只读日志访问
 
-人工操作员使用获批密钥进入 BytePlus 和 `ECS-Uat-Test-Back` 后，只执行必要的服务/时间窗口检查。
+当前请求明确要求 Gateway 生产诊断时，先按 [access-channel.md](access-channel.md) 将逻辑目标 `gateway-shared` 绑定到当前使用者已获批的 SSH、BytePlus 会话或专用只读工具。`ECS-Uat-Test-Back` 没有公网 IP，不能把私网地址当成任意环境可直连的入口。Main/Test 使用同一访问目标但对应不同 systemd 服务和日志路径；Skill 不要求为它们设置两个固定 alias。不得读取凭据、`.env` 或执行任何状态变更。
 
 Main：
 
@@ -65,7 +65,7 @@ jq -c --arg rid "$ROOM_ID" '
 - 启用 `TailFiles`，建议初始尾部 `10 KiB`，不匹配轮转文件。首次起点落在一行中间时允许出现一次 JSON 解析失败；新追加完整行持续失败才是异常。
 - 完整 MQ 事件日志首期不接入 TLS。只有完成独立 Topic、最小 IAM、最短保留期、masking/字段白名单和数据负责人审批后才可另行考虑。
 
-人工操作员可执行以下只读检查：
+具备获批访问通道时，可执行以下只读检查：
 
 ```bash
 systemctl is-active logcollectord.service

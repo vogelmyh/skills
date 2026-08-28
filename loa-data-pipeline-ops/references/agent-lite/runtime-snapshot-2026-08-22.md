@@ -6,11 +6,11 @@
 
 ## 1. 查询边界
 
-- 目标：`lc-oc-test-lite`、`lc-oc-prod-lite-a`、`lc-oc-prod-lite-b`；生产连接经 `lc-oc-prod-bastion`。
+- 逻辑目标：`agent-lite-test`、`agent-lite-prod-a`、`agent-lite-prod-b`；当时生产连接经获批堡垒机通道。原操作者使用的 SSH alias 不属于共享运行时事实。
 - 只使用非交互 SSH 和 `hostname`、`date`、`uname`、`systemctl show/list-*`、`ss`、`stat`、`journalctl --disk-usage`、`systemd-analyze cat-config`、`find`、`sha256sum` 等读取命令。
 - 没有使用 `sudo`、文件重定向、编辑、服务控制、包管理、HTTP 应用探针或数据存储查询。
 - 没有读取 `.env` 值、密钥、业务日志正文、数据库内容或 MQ 消息；只读取了 `.env` 的权限、owner、mtime 和 size 元数据。
-- 客户端将 `UserKnownHostsFile` 指向 `/dev/null`，没有写入本机 `known_hosts`。SSH 登录本身仍可能由远端 `sshd` 形成认证审计日志，这是客户端无法消除的系统副作用。
+- 当次查询客户端使用了一次性 known-hosts 处理，没有写入原操作者的持久 known-hosts。该历史做法不是当前访问基线，不得复制；后续访问必须按 [生产访问通道与可移植绑定](../access-channel.md) 独立核验并严格校验 host key。SSH 登录本身仍可能由远端 `sshd` 形成认证审计日志，这是客户端无法消除的系统副作用。
 
 ## 2. 主机和服务状态
 
@@ -18,7 +18,7 @@
 
 ### 测试节点
 
-- SSH 别名：`lc-oc-test-lite`
+- 逻辑节点：`agent-lite-test`
 - OS hostname：`loa-agent-lite`
 - `loa-agent-worker`：`enabled`、`active/running`；快照 PID `3548687`；启动时间 `2026-08-21 14:14:17 CST`
 - `loa-agent-gateway`：`enabled`、`active/running`；快照 PID `3548692`；启动时间 `2026-08-21 14:14:18 CST`
@@ -26,7 +26,7 @@
 
 ### 生产 A
 
-- SSH 别名：`lc-oc-prod-lite-a`
+- 逻辑节点：`agent-lite-prod-a`
 - 私网 IP：`10.0.1.218`
 - OS hostname：`prod-loa-agent-lite`
 - `loa-agent-worker`：`enabled`、`active/running`；快照 PID `285482`；启动时间 `2026-08-21 10:56:35 CST`
@@ -34,12 +34,12 @@
 
 ### 生产 B
 
-- SSH 别名：`lc-oc-prod-lite-b`
+- 逻辑节点：`agent-lite-prod-b`
 - 私网 IP：`10.0.1.219`
 - OS hostname：`prod-loa-agent-lite`
 - `loa-agent-gateway`：`enabled`、`active/running`；快照 PID `271538`；启动时间 `2026-08-21 10:57:25 CST`
 
-生产 A/B 的 OS hostname 相同。诊断、发布和故障记录必须同时标注 SSH 别名或私网 IP，不能只依据 `hostname` 区分节点。PID 是易变信息，只用于关联本次快照。
+生产 A/B 的 OS hostname 相同。诊断、发布和故障记录必须标注逻辑节点 `prod-a|prod-b`，不能只依据 `hostname` 区分节点；私网 IP 只作为带日期的辅助网络证据。PID 是易变信息，只用于关联本次快照。
 
 ## 3. 实际代码与回滚基线
 
