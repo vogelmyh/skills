@@ -22,6 +22,8 @@ Agent Lite 代码仓库：[Lighthunter-PTE-ltd/loa_agent_lite](https://github.co
 
 Monitor 和 Legacy `live.ended` 是两类独立消息，各有独立的 event ID。应按 room/session identity 关联，不能假定它们的 event ID 相同。
 
+OC Flow Guard 不在上图的数据路径中。它只读取 GitHub 部署事实并在已有正式测试资产时调度独立验收；平台 `no_assets`、未验收、GitHub 同步 fault 或控制台不可用不能解释为 Crawler/Gateway/Agent Lite 数据丢失。若症状是 Flow Guard 页面、部署发现、绑定、执行器或报告本身异常，转到 [flow-guard-diagnosis.md](flow-guard-diagnosis.md)。若用户只是从 Flow Guard 看不到业务通过，先确认是否存在已注册资产和实际运行证据，再回到本数据路径定位；不能用平台 health 或 GitHub 绿色替代任何节点证据。
+
 ## 从范围明确的故障键开始
 
 只收集实际存在的信息：
