@@ -1,8 +1,8 @@
 # Agent Lite 接管知识底稿
 
-更新日期：2026-08-28
+更新日期：2026-09-01
 
-本文整理 `loa_agent_lite` 的完整工程职责、数据依赖、发布方式、运行边界和故障定位入口。主体证据来自 2026-08-22 的仓库、GitHub Actions 和服务器只读快照，并在 2026-08-28 补充当前分支/访问控制面。历史 run、旧分支名和原操作者工作区只描述当时时点；当前发布映射以 [deployment-control-plane.md](../deployment-control-plane.md) 为准，访问绑定以 [access-channel.md](../access-channel.md) 为准。
+本文整理 `loa_agent_lite` 的完整工程职责、数据依赖、发布方式、运行边界和故障定位入口。主体证据来自 2026-08-22 的仓库、GitHub Actions 和服务器只读快照，2026-08-28 补充分支/访问控制面，2026-09-01 补充模型、密钥、部署目标配置归一化和 test/prod 发布验证。历史 run、旧分支名和原操作者工作区只描述当时时点；当前发布映射以 [deployment-control-plane.md](../deployment-control-plane.md) 为准，访问绑定以 [access-channel.md](../access-channel.md) 为准，配置迁移实证见 [configuration-migration-2026-09-01.md](configuration-migration-2026-09-01.md)。
 
 ## 1. 资料、仓库身份与证据基线
 
@@ -110,13 +110,21 @@ Agent Lite 从该 schema 的 `ods_tiktok_live_event_detail` 读取 Data Gateway 
 - RabbitMQ：用户生命周期消费，以及直播复盘通知发布。
 - LOA backend：token 校验、Profile、头像签名和业务 API。
 - message-service：IM 出站投递。
-- 模型 provider：Bedrock、SandBase、AtlasCloud 及配置的 fallback。
+- 模型 provider：当前统一 route 支持 SandBase、AtlasCloud、Vercel 及配置的 fallback；Bedrock adapter/path monitor 仍属于独立代码与观测能力，不能据此推断当前 Agent/Translation 路由使用 Bedrock。
 - Mem0：可选长期记忆；关闭后 Chat Agent 仍使用 Mastra PostgreSQL Memory。
 - TOS：直播复盘 HTML 发布；当前用户删除时由后端负责对象删除。
 - LOA MCP：Creator 商品目录等工具数据。
 - safety guard：用户消息安全分类。
 
 仓库当前 RabbitMQ 配置代码中存在硬编码凭据字面量。知识库不记录值，也不得在诊断输出中复述；这应作为独立凭据治理和轮换风险处理。
+
+### 模型、密钥与部署配置所有权
+
+- Agent、Live Recap 和 Translation 的六个 model route 使用各自 test/prod GitHub Environment Variables，统一格式为 `<Provider>-<model-id>`；Repository 层不再保留同名 model Variables。
+- Provider API keys 和 `MEM0_API_KEY` 使用无环境后缀的 GitHub Environment Secrets。Provider Base URL 由两个环境共享，仍保留为 Repository Variables。
+- Translation 与 Agent 复用同一 route descriptor 和 Provider connection 解析；Translation 使用 Chat Completions，Agent/Live Recap 使用 Responses。不要恢复独立 Translation provider/key/base URL 解析。
+- Test/Prod 主机地址和端口使用 `DEPLOY_*` Environment Variables；SSH 用户和私钥仍为组织级 Secrets。
+- 部署只按固定键集合把配置写入 `.env`，缺失 Environment 值时应失败，不得恢复 Repository fallback 或带环境后缀的旧键。准确键名、约束和 2026-09-01 验证见 [configuration-migration-2026-09-01.md](configuration-migration-2026-09-01.md)。
 
 ## 5. Fan Radar 数据路径与当前静态语义
 
@@ -221,7 +229,7 @@ Crawler
 
 ### Release
 
-- 2026-08-28 当前控制面中，环境部署由合并到 `test` 或 `main` 的 PR 触发；workflow 使用 `merge_commit_sha` 作为 `TARGET_SHA` 并在 checkout 后复核。
+- 2026-09-01 当前控制面中，环境部署由 `test` 或 `main` 的 `push` 触发；workflow 使用 `github.sha` 作为 `TARGET_SHA`，校验为 40 位 SHA 并在 checkout 后复核。通过受保护分支 PR merge 是正常晋级路径，但不是 workflow 的直接 event。
 - 手工 pre-release 只允许从 `test` 运行；符合 `vX.Y.Z` 的 tag 仍生成 stable release。Release 与环境部署是两条独立路径，绿色 Release 不证明测试或生产节点已更新。
 - 2026-08-22 的 `main` prerelease、`workflow_run` 测试部署和旧 `prod` 手工生产 workflow 只作为下文历史证据，不能作为当前入口。
 
@@ -238,7 +246,7 @@ Crawler
 
 用户于 2026-08-22 确认：资源公网 IP `101.47.17.169` 和私网 IP `172.31.47.34` 属于同一测试节点。2026-08-28 共享访问拓扑迁移为经统一安全堡垒机访问私网目标；原操作者的 alias 不属于共享事实。当前使用者应按 [access-channel.md](../access-channel.md) 绑定逻辑目标 `agent-lite-test`。
 
-当前部署入口是 PR 合并到 `test` 后触发 `Deploy on merge`；2026-08-22 的 `Release -> Deploy Pre-release` 关系只保留为历史 run 证据。
+当前部署入口是向 `test` push 后触发 `Deploy on merge`；受保护分支 PR merge 会产生该 push。2026-08-22 的 `Release -> Deploy Pre-release` 关系只保留为历史 run 证据。
 
 ### 生产环境
 
@@ -259,7 +267,7 @@ Crawler
 
 知识库只记录逻辑目标、云资源、地址、端口和跳板关系，不记录 SSH alias、用户、`IdentityFile` 或私钥内容。当前请求明确要求生产诊断时，按 [access-channel.md](../access-channel.md) 绑定 `agent-lite-prod-a|agent-lite-prod-b`；通道存在不授权状态变更、凭据读取、交互式无边界排查或绕过 host key/跳板机。
 
-当前 `Deploy on merge` 在 PR 合并到 `main` 后执行生产 check、test、smoke、制品构建，并先部署 `prod-a`、再部署 `prod-b`。准确触发条件、目标 SHA 和 GitHub Environment 必须在每次操作前从当前 workflow 重新核验。
+当前 `Deploy on merge` 在向 `main` push 后执行生产 check、test、Leo runtime smoke、制品构建，并先部署 `prod-a`、再部署 `prod-b`；受保护分支 PR merge 是正常来源。准确触发条件、目标 SHA 和 GitHub Environment 必须在每次操作前从当前 workflow 重新核验。
 
 ## 9. 服务器部署脚本与失败语义
 
@@ -268,12 +276,13 @@ Crawler
 1. 获取 `/var/lock/loa-agent-lite-deploy.lock`，阻止同主机并发部署。
 2. 核验部署目录、checksum 和至少一个已安装的目标 systemd service。
 3. 对每个 Gateway 请求 drain，最多等待 60 秒。
-4. 将当前部署备份到 `.deploy-backups/<timestamp>-before-auto-prerelease`。
-5. rsync 新 release，保留服务器 `.env`，排除 `.git`、`node_modules` 和备份目录。
+4. 将当前 release 备份到 `.deploy-backups/<timestamp>-before-auto-prerelease`，并单独快照部署前 `.env`。
+5. rsync 新 release，排除服务器 `.env`、`.git`、`node_modules` 和备份目录。
 6. 在服务器执行 `bun install --frozen-lockfile`。
-7. 重启当前主机上实际存在的目标服务。
-8. 最多约 60 秒等待每个 Gateway `/health`。
-9. 成功后默认只保留最新 1 份备份。
+7. 校验经 stdin 收到的固定运行时配置，以 `0600` 权限原子更新 `.env`，并删除已废弃的旧 provider/translation 配置键。
+8. 重启当前主机上实际存在的目标服务。
+9. 最多约 60 秒等待每个 Gateway `/health`，随后对每个 Gateway 执行真实 `/api/translate` smoke。
+10. 成功后默认只保留最新 1 份备份。
 
 重要边界：
 
@@ -281,9 +290,9 @@ Crawler
 - drain 只跟踪正在执行的 Agent chat turn，不覆盖 Worker 长任务、Fan Radar API 写入或所有 IM outbox 投递。
 - 缺失的 systemd service 会被跳过；只要至少一个目标 service 存在，脚本仍可继续。因此 `prod-a` 缺失 Worker 时，Gateway 仍可能通过 health 并让 workflow 绿色。
 - `bun install` 在服务器部署窗口内执行，依赖 registry/网络可用性。
-- 新部署失败后 trap 会尝试从本机备份 rsync、重新安装依赖并重启，但不会对恢复后的 Gateway 再做 health，也不会核验 Worker。Rollback 本身失败会被吞掉，workflow 仍只报告原始部署失败。
+- 新部署失败后 trap 会尝试恢复本机 release 与 `.env` 快照、重新安装依赖、重启并复查 Gateway health，但不会重跑翻译 smoke，也不会核验 Worker。Rollback 本身失败会被吞掉，workflow 仍只报告原始部署失败。
 - `prod-a` 与 `prod-b` 串行但不是一个跨主机事务。若 A 成功、B 失败，workflow 不会自动把 A 恢复到旧版，可能形成混合版本。
-- 备份是代码目录快照，不是不可变制品注册表；`.env` 被包含在备份中但新 release 同步时被保留。
+- 备份是代码目录快照，不是不可变制品注册表；`.env` 不在 release 快照中，而是单独保存并在单机 rollback 时恢复。
 - 仓库没有核心 `loa-agent-worker` / `loa-agent-gateway` systemd unit，无法静态确认启动命令、EnvironmentFile、Restart、TimeoutStopSec、stdout/stderr 去向和资源限制。
 
 ## 10. GitHub Actions 历史实证（2026-08-20 至 2026-08-22）
@@ -320,7 +329,7 @@ Crawler
 
 ## 11. 发布与回滚操作边界
 
-- PR 合并到 `test` 会部署共享测试环境，合并到 `main` 会部署生产环境；两者都会改变远端状态，执行前必须确认影响并核验当前 workflow。
+- 向 `test` push 会部署共享测试环境，向 `main` push 会部署生产环境；受保护分支 PR merge 是正常晋级路径。两者都会改变远端状态，执行前必须确认影响并核验当前 workflow。
 - 分支已更新、workflow 已触发和服务器已部署是不同证据层级；不能用前一层替代后一层。
 - 生产发布前必须锁定 `origin/main` 完整 SHA、目标 run、两台主机、预期服务和当前已知良好版本。
 - 生产 A/B 串行部署，需要明确 B 失败后的 A 主机恢复决策；不能把单机脚本 rollback 当作跨主机自动回滚。
