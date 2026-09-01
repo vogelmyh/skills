@@ -1,10 +1,10 @@
 # loa-data-pipeline-ops
 
-运维、发布、回滚和诊断 LOA Crawler-to-Gateway-to-Agent-Lite 数据链路，并保留有关运行环境、组件故障和端到端排查的已固化运维经验。
+运维、发布、回滚和诊断 LOA Crawler-to-Gateway-to-Agent-Lite 数据链路及 OC Flow Guard 验收控制面，并保留有关运行环境、组件故障和端到端排查的已固化运维经验。
 
 ## When to use
 
-适用于 `loa-glabal-crawler`、`loa-data-gateway` 或 `loa_agent_lite` 的部署、GitHub Actions、BytePlus 运行状态与日志、告警，以及 RabbitMQ、TOS、PostgreSQL 和 Fan Radar 数据路径故障。不用于无关的 LOA 应用层工作。
+适用于 `loa-glabal-crawler`、`loa-data-gateway`、`loa_agent_lite` 或 `oc-flow-guard` 的部署、GitHub Actions、BytePlus 运行状态与日志、告警，以及 RabbitMQ、TOS、PostgreSQL、Fan Radar 数据路径和部署验收平台故障。不用于无关的 LOA 应用层工作。
 
 ## Invoke
 
@@ -23,10 +23,12 @@ $loa-data-pipeline-ops
 - `references/crawler-diagnosis.md`：Crawler 告警、采集、TOS、MQ 发布与日志排查
 - `references/gateway-diagnosis.md`：Gateway 的 MQ、TOS、PostgreSQL、DLQ、导入与日志排查
 - `references/agent-lite-diagnosis.md`：Agent Lite Worker/Gateway、应用日志与告警排查
+- `references/flow-guard-diagnosis.md`：OC Flow Guard 入口、GitHub 发现、绑定、执行器、SQLite、证据与发布故障排查
 - `references/end-to-end-diagnosis.md`：Fan Radar 和组件未知故障的端到端定界
 - `references/crawler/`：Crawler 详细知识底稿、交接与 MQ 契约、TLS 架构及发布实证
 - `references/gateway/`：Gateway 详细知识底稿与 TLS 人工实施手册
 - `references/agent-lite/`：Agent Lite 详细知识底稿、运行快照与 TLS 人工实施手册
+- `references/flow-guard/`：OC Flow Guard 详细能力、入口/身份、数据/执行、部署和维护知识底稿
 - `assets/agent-lite-tls/`：Agent Lite journald 导出、systemd 与 logrotate 的已审计安装文件
 - `agents/openai.yaml`：界面展示元数据
 - `README.md`：面向维护者的概览，不参与运行

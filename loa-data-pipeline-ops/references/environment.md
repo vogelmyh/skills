@@ -1,6 +1,6 @@
 # 环境与访问基线
 
-基线快照日期：2026-08-28；Agent Lite 配置与发布证据更新至 2026-09-01。优先采用更新的 GitHub 代码、用户确认事实和线上只读证据。仓库 clone 可以位于任意目录；用 origin URL 核验身份，不要依赖本机路径。
+基线快照日期：2026-08-28；Agent Lite 配置与发布证据、OC Flow Guard 代码/GitHub run 证据更新至 2026-09-01。优先采用更新的 GitHub 代码、用户确认事实和线上只读证据。仓库 clone 可以位于任意目录；用 origin URL 核验身份，不要依赖本机路径。
 
 ## Crawler
 
@@ -109,6 +109,28 @@ workflow 中仍包含 `test`/`uat` 目标，但它们是历史配置，不代表
 - 当前链路能采集应用实际输出的 Gateway 日志，但 Agent Lite 没有统一的全路径 access logger；`[gateway] Fan Radar request` 只覆盖 Fan Radar 客户端 API。不能用该 Topic 的日志量还原全部 A/B 或 ALB 流量。
 
 详细人工配置见 [agent-lite/tls-logcollector-guide.md](agent-lite/tls-logcollector-guide.md)，安装资产位于 [../assets/agent-lite-tls/](../assets/agent-lite-tls/)；本文只保留诊断所需摘要。
+
+## OC Flow Guard
+
+- 仓库：[Lighthunter-PTE-ltd/oc-flow-guard](https://github.com/Lighthunter-PTE-ltd/oc-flow-guard)，私有；默认分支为 `main`。
+- 平台分支模型：`dev` 用于开发且不部署；常规 `main` push 触发唯一平台控制面的部署，受限 `workflow_dispatch` 也只允许从 `main` ref 执行。平台控制面同时展示和管理业务 `test`/`prod`，不是两套平台环境，也没有平台 `test` 分支。
+- 2026-09-01 GitHub 只读核验的主干为 `943aee606d2d7c9a8fa6fdee312f980979e97e78`。`Deploy platform main` run `33482448536` / attempt 1 对该 SHA 执行并成功；绿色 run 只证明 workflow 覆盖的构建、测试、主机发布、停服数据库检查、双服务和新鲜执行器心跳，不证明公开 `/readyz`、域名入口或业务 Test/生产验收通过。
+- 共享 BytePlus 主机：`ECS-Uat-Test-Back`，系统主机名历史快照为 `ECS-Uat-Back`，私网 `172.31.0.2`。该主机同时承载 Data Gateway；共享主机不表示 Flow Guard 有隔离 test 实例。
+- 唯一浏览器入口：`https://auth.loa.services/oc-flow-guard/`。既有域名服务负责 TLS、登录鉴权和公开前缀到应用根路径的映射；Flow Guard 不实现本地登录，也不创建绕过域名服务的 ALB Path 规则。
+- 域名服务的 Flow Guard 私网目标：`http://172.31.0.2:18080/`；健康路径 `/readyz`。2026-09-01 迁移时观察并收敛的代理源为 `172.31.0.7/32`；使用前必须重新从真实连接与可信控制面核验，不能把该历史值扩大为全 VPC。
+- 业务端口：`172.31.0.2:18080`；内部执行器/主机管理端口：`127.0.0.1:18081`。内部端口不得由域名服务或 ALB 转发。
+- systemd：`oc-flow-guard-control.service`、`oc-flow-guard-executor.service` 两个非 root 常驻服务；`oc-flow-guard-network.service` 是只加载专属 nft 表的一次性 unit，不是第三个应用服务。
+- 活动代码根：`/www/typescript-server/oc-flow-guard/current`，发布目录为 `releases/<完整 commit>-<bundle SHA-256 前 12 位>`，Node 运行时为 `/opt/node-v24.20.0`。旧 `/opt/oc-flow-guard` 和含本地登录的 release 已在 2026-09-01 最终清理，不是回滚目标。
+- 非秘密配置：`/etc/oc-flow-guard/control.json`、`/etc/oc-flow-guard/executor.json`；秘密源目录：`/etc/oc-flow-guard/secrets`；SQLite/证据：`/var/lib/oc-flow-guard/control`；执行器 journal/工作目录：`/var/lib/oc-flow-guard/executor`。禁止读取秘密正文或不受限配置转储。
+- 数据合同：SQLite schema 2、WAL、`synchronous=FULL`、单控制服务写入者。正式业务资产清单在当前版本为空，版本标识 `platform-0.1.0-empty`；`no_assets`/未验收是预期结果，不能伪造业务通过。
+- GitHub 读取身份历史快照：组织 App `OC Flow Guard`，App ID `4787546`，Installation ID `158109270`，selected repositories，权限仅 Actions read / Metadata read。私钥只通过控制服务 systemd credential 暴露；执行器不得读取。ID 不是凭据，但每次维护仍须核验 installation 未暂停及仓库授权范围。
+- 当前已登记的业务部署源快照是 `Lighthunter-PTE-ltd/loa_agent_lite`：仓库稳定 ID `1238648790`，workflow `Deploy on merge` / ID `342003207` / `.github/workflows/deploy-on-merge.yml`，事件 `push`，Test ref `test`、Production ref `main`，必需 job `Deploy merged revision`。绑定资产为空，因此只展示部署事实而不创建自动业务运行。
+
+### 2026-09-01 运行实证边界
+
+历史实施记录确认：活动 release 位于 TypeScript 根、schema 2、认证表为 0、SQLite integrity 为 `ok`；控制/执行/network units 当时 active，域名服务未登录请求进入统一登录，登录后页面/静态资源/只读 API 为 200，错误 Origin 写请求为 403。两条 Agent Lite 绑定的 progress 当时 `fault=null`、`pending=0`，80 个唯一部署身份重复轮询不增长，且没有自动业务运行。
+
+这些是带日期的 GitHub run、主机运行时与操作员确认组合证据。诊断当前状态时仍须分别重新核验当前 main SHA/run、活动 `deployment.json`、systemd/readiness/执行器心跳、域名服务入口和绑定 progress；不能从本快照声称平台或业务今天仍健康。
 
 ## 共享访问拓扑（2026-08-28）
 

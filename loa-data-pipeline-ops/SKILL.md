@@ -1,11 +1,11 @@
 ---
 name: loa-data-pipeline-ops
-description: 运维、发布、回滚和诊断 LOA Crawler-to-Gateway-to-Agent-Lite 数据链路。适用于 loa-glabal-crawler、loa-data-gateway 或 loa_agent_lite 的部署、GitHub Actions、BytePlus 运行状态/日志检查、告警、RabbitMQ/TOS/PostgreSQL 故障及 Fan Radar 数据路径故障；不适用于无关的 LOA 应用层工作。
+description: 运维、发布、回滚和诊断 LOA Crawler-to-Gateway-to-Agent-Lite 数据链路及 OC Flow Guard 验收控制面。适用于 loa-glabal-crawler、loa-data-gateway、loa_agent_lite 或 oc-flow-guard 的部署、GitHub Actions、BytePlus 运行状态/日志检查、告警、RabbitMQ/TOS/PostgreSQL 故障、Fan Radar 数据路径故障及部署验收平台故障；不适用于无关的 LOA 应用层工作。
 ---
 
-# LOA 数据链路运维
+# LOA 数据链路与验收控制面运维
 
-支持人和 AI 安全协作接管 `loa-glabal-crawler`、`loa-data-gateway`、`loa_agent_lite`，以及它们依赖的 RabbitMQ、TOS、PostgreSQL、Redis、EulerStream、ECS 和 Fan Radar 数据路径。
+支持人和 AI 安全协作接管 `loa-glabal-crawler`、`loa-data-gateway`、`loa_agent_lite`、`oc-flow-guard`，以及它们依赖的 RabbitMQ、TOS、PostgreSQL、Redis、EulerStream、ECS 和 Fan Radar 数据路径。`oc-flow-guard` 是独立的部署发现与验收控制面，不在 Crawler → Gateway → Agent Lite 业务数据路径中；平台可用、GitHub 发现成功或验收记录存在都不能替代业务数据路径证据。
 
 只处理用户当前提出的请求。不要把故障咨询扩展为重新设计，也不要把发布请求扩展为更广泛的生产维护。
 
@@ -16,6 +16,7 @@ description: 运维、发布、回滚和诊断 LOA Crawler-to-Gateway-to-Agent-L
 - Crawler：[Lighthunter-PTE-ltd/loa-glabal-crawler](https://github.com/Lighthunter-PTE-ltd/loa-glabal-crawler)
 - Gateway：[Lighthunter-PTE-ltd/loa-data-gateway](https://github.com/Lighthunter-PTE-ltd/loa-data-gateway)
 - Agent Lite / Fan Radar：[Lighthunter-PTE-ltd/loa_agent_lite](https://github.com/Lighthunter-PTE-ltd/loa_agent_lite)
+- OC Flow Guard：[Lighthunter-PTE-ltd/oc-flow-guard](https://github.com/Lighthunter-PTE-ltd/oc-flow-guard)
 
 需要读取代码或 workflow 时，先在当前 workspace 中定位 clone，并用 `git remote get-url origin` 核对仓库身份；HTTPS 与 SSH remote 视为同一仓库。不要假定任何固定绝对路径，也不要假定仓库与 Skill 相邻。找不到 clone 时，说明缺失哪个仓库：纯说明任务可继续使用随附快照；需要当前代码证据时，应让用户提供/clone 仓库或明确授权在其指定目录 clone，不得静默改用另一个同名目录。
 
@@ -29,6 +30,7 @@ description: 运维、发布、回滚和诊断 LOA Crawler-to-Gateway-to-Agent-L
 - Crawler 告警、采集、TOS、MQ 发布或 Crawler 日志：读取 [references/crawler-diagnosis.md](references/crawler-diagnosis.md)。
 - Gateway MQ、TOS 导入、PostgreSQL、DLQ、用户/头像、手动导入、Gateway 日志或 BytePlus TLS/LogCollector：读取 [references/gateway-diagnosis.md](references/gateway-diagnosis.md)。
 - Agent Lite Worker/Gateway、应用日志、journald、BytePlus TLS/LogCollector 或 Agent Lite 告警：读取 [references/agent-lite-diagnosis.md](references/agent-lite-diagnosis.md)。
+- OC Flow Guard 入口、域名服务代理、GitHub App/轮询、部署绑定、`no_assets`、SQLite、执行器、证据、systemd、发布目录或平台恢复：读取 [references/flow-guard-diagnosis.md](references/flow-guard-diagnosis.md)。
 - Fan Radar 数据缺失/错误，或故障组件未知：读取 [references/end-to-end-diagnosis.md](references/end-to-end-diagnosis.md)，先定位故障边界，再读取相关组件的参考资料。
 
 只有精简参考不足以回答当前问题时，才进一步读取详细材料：
@@ -37,6 +39,7 @@ description: 运维、发布、回滚和诊断 LOA Crawler-to-Gateway-to-Agent-L
 - Crawler TLS/Codex 诊断架构或 2026-08-19 发布实证：读取 [references/crawler/tls-incident-architecture.md](references/crawler/tls-incident-architecture.md) 或 [references/crawler/release-validation-2026-08-19.md](references/crawler/release-validation-2026-08-19.md)。
 - Gateway 完整职责、部署语义或 TLS 人工实施：读取 [references/gateway/knowledge-base.md](references/gateway/knowledge-base.md) 或 [references/gateway/tls-logcollector-guide.md](references/gateway/tls-logcollector-guide.md)。
 - Agent Lite 完整职责、部署语义、模型/密钥/部署目标配置归一化、历史运行快照或 TLS 人工实施：按需读取 [references/agent-lite/knowledge-base.md](references/agent-lite/knowledge-base.md)、[references/agent-lite/configuration-migration-2026-09-01.md](references/agent-lite/configuration-migration-2026-09-01.md)、[references/agent-lite/runtime-snapshot-2026-08-22.md](references/agent-lite/runtime-snapshot-2026-08-22.md) 或 [references/agent-lite/tls-logcollector-guide.md](references/agent-lite/tls-logcollector-guide.md)。TLS 实施涉及的已审计安装文件位于 [assets/agent-lite-tls/](assets/agent-lite-tls/)；使用前仍应核对当前主机与 unit 状态并重新取得生产变更授权。
+- OC Flow Guard 完整职责、入口/身份边界、数据与执行合同、部署语义、维护/恢复边界及 2026-09-01 历史实证：读取 [references/flow-guard/knowledge-base.md](references/flow-guard/knowledge-base.md)。该底稿来自已删除但仍存在于 Git 历史的冻结规范、架构/实施/运维记录，并已与 `origin/main@943aee606d2d7c9a8fa6fdee312f980979e97e78` 的当前代码核对；历史 ECS 快照不能替代当前运行时复核。
 
 不要默认加载全部参考资料。随附参考资料只是运维兜底信息，不能证明 GitHub 或云端当前状态。如果当前仓库/工作区证据与参考资料冲突，应明确报告；若冲突涉及安全，应在任何变更前停止，不得静默选择其中一个值。
 
@@ -85,6 +88,11 @@ description: 运维、发布、回滚和诊断 LOA Crawler-to-Gateway-to-Agent-L
 - Crawler 没有可用的 test/UAT 环境。不得仅因 YAML 中仍保留历史 `test`/`uat` workflow 目标就进行部署。
 - Gateway `test` 并不隔离。它与 `main` 共用生产服务器和依赖，并竞争消费同一 RabbitMQ 队列；任何 `test` 部署都按可能影响生产处理。
 - Gateway `dev -> test -> main` 只保障进程可用性。如果混合版本可能改变 MQ/TOS/数据库契约、ACK/NACK、重试/DLQ、过滤、幂等或写入语义，应停止并先完成兼容性/迁移决策。
+- OC Flow Guard 只有一个平台控制面；`dev` 不部署，只有 `main` ref 可通过常规 push 或受限手工 dispatch 部署。它同时管理业务 `test`/`prod` 记录，不表示平台自身存在两套环境。不得把共享 ECS 名称中的 UAT/Test 当作隔离平台实例。
+- OC Flow Guard 的唯一浏览器入口是既有域名服务认证后的 `https://auth.loa.services/oc-flow-guard/`。不得恢复旧 `flow-guard.opencreators.ai` 直达、创建绕过域名服务的 ALB 规则、把 `172.31.0.2:18080` 暴露为公网入口，或放宽为任意代理/全 VPC 来源。
+- OC Flow Guard 已删除本地账号/密码/会话。浏览器使用统一 `gateway-operator` 权限；部署绑定与系统自动运行处置只能走受保护的主机回环管理入口。不得重新启用公开绑定写路由或把 admin machine credential 交给浏览器/执行器。
+- OC Flow Guard 正式资产清单为空时，`no_assets`、`baseline_only` 和“未验收”是正确状态；不得投递空执行、制造演示通过或把平台健康/GitHub 部署成功表述为 Test/生产业务通过。
+- OC Flow Guard 当前数据合同是 SQLite schema 2，活动代码根是 `/www/typescript-server/oc-flow-guard`。不得恢复含本地登录的 schema 1/旧 `/opt/oc-flow-guard` release，也不得通过删除执行器 journal、重置 boot identity 或直接回队来绕过不确定执行对账。
 - 绝不能把部署/readiness 失败配置为 RabbitMQ/DLQ 自动重放条件，即使用户提前提出此要求。失败发生后，应先恢复并核验服务状态、诊断准确的消息/数据状态；任何重放或历史数据修复都必须重新进入证据与授权关口。
 - 绿色 GitHub Action 或 `health=UP` 只能证明其实际覆盖的检查。构建成功、进程部署成功和数据路径成功必须分别得出结论。
 - 绝不复述在 profile、workflow 日志、事件日志或错误中发现的凭据或敏感值。
@@ -108,6 +116,7 @@ description: 运维、发布、回滚和诊断 LOA Crawler-to-Gateway-to-Agent-L
 - 生产授权、操作或目标含糊不清；
 - Crawler 请求假定存在安全的非生产环境；
 - Gateway 变更可能造成混合版本数据语义；
+- OC Flow Guard 操作会绕过域名服务鉴权、公开主机管理面、恢复 schema 1/旧登录 release，或无法证明执行器 journal/cgroup 已完成对账；
 - 回滚目标无法关联到已核验的提交和成功 run，或当前 workflow 不能检出该准确 SHA；
 - 所需证据会暴露密钥，或要求 AI 代管生产密钥；
 - 当前执行环境无法把逻辑目标绑定到已批准通道，或绑定结果与共享资源/网络拓扑冲突；

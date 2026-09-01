@@ -1,6 +1,6 @@
 # GitHub Actions 发布控制面
 
-GitHub Actions 是三个工程发布和版本回滚的唯一执行入口。本文件只记录控制面映射和无法从 workflow 单独推导的边界；当前目标 SHA 对应的 workflow、部署脚本、GitHub 配置和 run 才是执行事实源。
+GitHub Actions 是 Crawler、Gateway、Agent Lite 和 OC Flow Guard 四个工程发布和版本回滚的唯一执行入口。本文件只记录控制面映射和无法从 workflow 单独推导的边界；当前目标 SHA 对应的 workflow、部署脚本、GitHub 配置和 run 才是执行事实源。
 
 ## 每次动态核验
 
@@ -42,6 +42,19 @@ GitHub Actions 是三个工程发布和版本回滚的唯一执行入口。本�
 - 生产按 `prod-a` 后 `prod-b` 串行部署，不是跨主机事务。单机自动 rollback 会恢复 release 和 `.env`、重新安装依赖、重启并复查 Gateway health，但不会重跑翻译 smoke 或核验 Worker；不得把它视为完整生产回滚。
 - `.github/workflows/release.yml` 的手工 pre-release 只允许从 `test` 运行；stable release 仍由符合 `vX.Y.Z` 的 tag 触发。Release 与环境部署是不同控制面，绿色 Release 不证明测试或生产服务器已更新。
 - 2026-09-01 的配置迁移已按 `dev -> test -> main` 推进。Test run `33481379194` 部署 `8b507550...`，Prod run `33482168214` 部署 `ffb8b882...`，两者 conclusion 均为 `success`；这些结果仍只能证明 workflow 实际覆盖的构建、部署、health 与翻译 smoke。
+
+## OC Flow Guard
+
+- 仓库：`Lighthunter-PTE-ltd/oc-flow-guard`；控制面入口：`.github/workflows/deploy-main.yml`、`scripts/deploy-main.sh` 和 `scripts/deploy-release.py`。
+- 平台只有一个部署实例。`dev` 不触发部署；常规 `main` push 触发 `Deploy platform main`，受限 `workflow_dispatch` 也只在 `main` ref 执行。这个控制面同时展示业务 `test`/`prod`，不能把业务环境选择解释为两套平台部署。
+- Workflow 固定 `github.sha` checkout 并复核 HEAD，使用 Node `24.20.0` / npm `11.19.0`，执行依赖安装、typecheck、build、Python 部署安全测试、Chromium/Node 隔离测试和生产依赖裁剪，随后才进入部署。concurrency 为 `oc-flow-guard-main` 且 `cancel-in-progress=false`。
+- 部署 job 使用 `loa-self-hosted` runner 和组织 UAT/Test SSH secrets，把摘要发布包送到固定目标 `172.31.0.2`；该 SSH 是 Action 内部的交付通道，不授权操作员绕过 Action 直接发布、复制 release 或重启服务。
+- 远端活动根固定为 `/www/typescript-server/oc-flow-guard`。`scripts/deploy-release.py` 校验归档路径、package SHA-256、`dist/release.json`、锁文件、Node 版本和 schema 2；停止执行器后若存在 `journal.json` 会拒绝切换，随后停控制服务、核对 cgroup、执行数据库 check、原子更新 `current`，最后要求双服务 active 和本次启动后的新鲜执行器心跳。
+- `workflow_dispatch` 的 `migrate_auth_layout`/`proxy_cidr` 是 2026-09-01 一次性 schema/auth/TypeScript 根迁移入口。迁移和最终旧登录清理已经完成；普通发布不得再次设置该输入，也不得恢复旧 `/opt/oc-flow-guard` 或 schema 1。
+- 当前浏览器入口依赖既有域名服务鉴权。当前部署脚本覆盖停服数据库 check、systemd active 与本次启动后的执行器心跳，不直接请求公开 `/readyz`，也不持有浏览器会话；规范入口未登录/登录行为、公开健康和路径映射必须作为独立入口证据。
+- 2026-09-01 GitHub 只读核验：`main@943aee606d2d7c9a8fa6fdee312f980979e97e78` 的 run `33482448536` / attempt 1 为 `success`，deploy job `99774875185` 成功。该 run 是当日最新发布实证；操作前仍要查询更新的 main/run 和主机活动 `deployment.json`。
+- 当前 workflow 没有“输入任意历史 SHA 并部署”的常规回滚入口。回滚候选必须先证明是已验证的无登录 schema 2 release，并能由受保护分支/Action 精确检出；若做不到，应报告控制面缺口，不得改用直接 SSH 切 `current`。
+- 发布不能回滚 SQLite 中已经保存的部署/运行/进度，也不能撤销已经执行的业务副作用。恢复旧数据库副本是独立停服恢复任务，需重新评估 restore quarantine、执行器 journal、绑定启用边界和 GitHub 补查后果。
 
 ## 快照与历史证据
 

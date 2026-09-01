@@ -10,6 +10,7 @@
 | --- | --- | --- | --- |
 | `crawler-prod` | BytePlus `LOA-crawler-prod` / 主机名 `ECS-Prod-Crawler` | 私网 `10.0.1.204:22`；资源公网 IP `101.47.11.6` | 优先经安全堡垒机或 BytePlus 受控会话，不把公网直连当默认路径 |
 | `gateway-shared` | BytePlus `ECS-Uat-Test-Back` | 私网 `172.31.0.2:22`，无公网 IP | 经安全堡垒机、BytePlus 受控会话或其他已批准内部通道 |
+| `flow-guard-control` | BytePlus `ECS-Uat-Test-Back` / OC Flow Guard 唯一控制面 | 私网 `172.31.0.2:22`，无公网 IP；业务 `172.31.0.2:18080`，内部 `127.0.0.1:18081` | 与 `gateway-shared` 共用主机访问目标；经安全堡垒机、BytePlus 受控会话或其他已批准内部通道 |
 | `agent-lite-test` | GitHub Environment / 节点 `lc-oc-test-lite` | 私网 `172.31.47.34:22`；资源公网 IP `101.47.17.169` | 当前基线经安全堡垒机或 BytePlus 受控会话 |
 | `agent-lite-prod-a` | `prod-a` | 私网 `10.0.1.218:22` | 经安全堡垒机或 BytePlus 受控会话 |
 | `agent-lite-prod-b` | `prod-b` | 私网 `10.0.1.219:22` | 经安全堡垒机或 BytePlus 受控会话 |
@@ -17,7 +18,7 @@
 
 地址、端口和云资源名是带日期的环境快照，不是凭据，也不表示任何使用者已经获得访问权。使用前应从可信云控制面或访问负责人处核验；发生迁移时更新本表，而不是把某个人的新 SSH alias 复制进 Skill。
 
-`gateway-shared` 上同时运行 main/test 两个 systemd 服务；连接目标相同不代表实例或日志路径相同。Agent Lite 生产 A/B 的 OS hostname 相同；证据必须使用逻辑节点 `prod-a|prod-b` 区分。
+`gateway-shared` 与 `flow-guard-control` 是同一 ECS 上的两个逻辑运维目标：前者包含 Gateway main/test，后者是唯一 Flow Guard 控制面。连接目标相同不代表服务、端口、代码根或日志相同；查询必须限定到准确 unit/路径，不能在 Flow Guard 维护中读取 Gateway 业务 payload，反之亦然。Agent Lite 生产 A/B 的 OS hostname 相同；证据必须使用逻辑节点 `prod-a|prod-b` 区分。
 
 ## 为当前执行环境绑定访问通道
 
