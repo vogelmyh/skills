@@ -33,13 +33,15 @@ GitHub Actions 是三个工程发布和版本回滚的唯一执行入口。本�
 ## Agent Lite
 
 - 仓库：`Lighthunter-PTE-ltd/loa_agent_lite`；控制面入口：`.github/workflows/deploy-on-merge.yml`、`.github/workflows/release.yml` 和 `scripts/deploy-release-on-server.sh`。
-- `dev` 是受保护的默认开发分支，不触发环境部署。`Deploy on merge` 只监听合并到 `test` 或 `main` 的 PR closed 事件，并要求 PR 实际已合并。
-- `test` 对应 `lc-oc-test-lite`，`main` 对应 `lc-oc-prod`。Workflow 使用 PR 的 `merge_commit_sha` 作为 `TARGET_SHA`，checkout 后再次核对实际 HEAD，再执行 check、test、Leo runtime smoke、制品构建和部署。
-- GitHub Environments 使用 custom branch policy：`lc-oc-test-lite` 只接受 `test`，`lc-oc-prod` 只接受 `main`。两者在 2026-08-28 核验时没有 required-reviewer 等 protection rules；分支限制不能替代 required reviewer。
-- `test` 使用测试 API key、测试 SSH 目标和测试服务集合；`main` 使用生产 API key、bastion/生产 SSH 目标，并依次部署 `prod-a`、`prod-b`。环境选择、凭据选择、SSH 配置和部署目标都必须使用同一个 `TARGET_BRANCH` 判定，修改分支映射时要整体核对，不能只改 workflow trigger。
-- 生产按 `prod-a` 后 `prod-b` 串行部署，不是跨主机事务。单机脚本的自动 rollback 只恢复该主机备份，且恢复后不重新验证 Gateway health 或 Worker；不得把它视为完整生产回滚。
+- `dev` 是受保护的默认开发分支，不触发环境部署。`Deploy on merge` 当前直接监听 `test`、`main` 的 `push`；受保护分支 PR merge 是正常晋级方式，但 workflow 不再读取 PR payload。
+- `test` 对应 `lc-oc-test-lite`，`main` 对应 `lc-oc-prod`。Workflow 使用 `github.ref_name` 与 `github.sha`，要求目标 SHA 是 40 位十六进制值，checkout 后再次核对实际 HEAD，再执行 check、test、Leo runtime smoke、制品构建和部署。
+- GitHub Environments 使用 custom branch policy：`lc-oc-test-lite` 只接受 `test`，`lc-oc-prod` 只接受 `main`。两者在 2026-09-01 核验时只有 branch policy，没有 required reviewer；分支限制不能替代人工批准门禁。
+- Test/Prod 的 provider API keys 使用各自 Environment 中无环境后缀的 `ATLAS_API_KEY`、`MEM0_API_KEY`、`SANDBASE_API_KEY`、`VERCEL_API_KEY`；六个 Agent/Live Recap/Translation model routes 和 `DEPLOY_*` 也使用 Environment Variables。Repository Variables 只保留 `SANDBASE_BASE_URL`、`ATLASCLOUD_BASE_URL`、`VERCEL_BASE_URL`。不得恢复带 `_TEST` / `_PROD` 后缀的运行时密钥、Repository model fallback、硬编码测试地址或 `LC_OC_PROD_*`。
+- SSH 用户/私钥仍由组织级 Secrets 按 `TARGET_BRANCH` 选择。Test 只需要 `DEPLOY_A_*` 并部署 Worker + Gateway + Gateway B；Prod 还要求 `DEPLOY_B_*`，先部署 A 的 Worker + Gateway，再部署 B 的 Gateway。环境选择、凭据选择、SSH 配置和部署目标必须使用同一个分支判定。
+- 配置经 CI 非空/route 校验后，以 NUL 分隔记录通过 stdin 送到服务器；部署脚本再次校验并以 `0600` 权限原子更新 `.env`。Gateway health 后还会执行真实翻译 smoke。完整合同和 2026-09-01 证据见 [agent-lite/configuration-migration-2026-09-01.md](agent-lite/configuration-migration-2026-09-01.md)。
+- 生产按 `prod-a` 后 `prod-b` 串行部署，不是跨主机事务。单机自动 rollback 会恢复 release 和 `.env`、重新安装依赖、重启并复查 Gateway health，但不会重跑翻译 smoke 或核验 Worker；不得把它视为完整生产回滚。
 - `.github/workflows/release.yml` 的手工 pre-release 只允许从 `test` 运行；stable release 仍由符合 `vX.Y.Z` 的 tag 触发。Release 与环境部署是不同控制面，绿色 Release 不证明测试或生产服务器已更新。
-- 2026-08-28 分支迁移时先停用 `Deploy on merge`，再通过受保护分支 PR 依次同步 `dev -> test -> main`，最后恢复 workflow。迁移后的 `dev`、`test`、`main` tree 均为 `1c9b1bb1d05f089a40b6b40dfaa298f60f8f0d3a`，且迁移没有产生新的 Action run 或 Environment deployment；不得将此次控制面变更表述为一次应用部署。
+- 2026-09-01 的配置迁移已按 `dev -> test -> main` 推进。Test run `33481379194` 部署 `8b507550...`，Prod run `33482168214` 部署 `ffb8b882...`，两者 conclusion 均为 `success`；这些结果仍只能证明 workflow 实际覆盖的构建、部署、health 与翻译 smoke。
 
 ## 快照与历史证据
 
