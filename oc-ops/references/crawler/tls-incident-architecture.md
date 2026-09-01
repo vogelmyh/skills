@@ -11,7 +11,7 @@
 建设两条连续但可独立交付的能力：
 
 1. 将 Crawler 生产应用日志可靠采集到 BytePlus Torch Log Service（TLS），使其可集中检索、分析和告警。
-2. 让 Codex 在获得告警上下文后，结合 `loa-data-pipeline-ops` Skill、代码和受控的 TLS 日志查询，返回可复核的问题定位。
+2. 让 Codex 在获得告警上下文后，结合 `oc-ops` Skill、代码和受控的 TLS 日志查询，返回可复核的问题定位。
 
 理想链路为：
 
@@ -124,7 +124,7 @@ Spring Boot
 ```text
 Feishu/TLS 告警
   -> 操作员确认服务、环境、时间窗和关联 ID
-  -> Codex + loa-data-pipeline-ops Skill
+  -> Codex + oc-ops Skill
   -> 人工提供脱敏日志，或调用受控只读 TLS 工具
   -> Codex 返回带证据的问题定位
   -> 操作员决定下一项只读检查或另行授权修复

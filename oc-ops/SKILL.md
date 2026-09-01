@@ -1,9 +1,9 @@
 ---
-name: loa-data-pipeline-ops
+name: oc-ops
 description: 运维、发布、回滚和诊断 LOA Crawler-to-Gateway-to-Agent-Lite 数据链路及 OC Flow Guard 验收控制面。适用于 loa-glabal-crawler、loa-data-gateway、loa_agent_lite 或 oc-flow-guard 的部署、GitHub Actions、BytePlus 运行状态/日志检查、告警、RabbitMQ/TOS/PostgreSQL 故障、Fan Radar 数据路径故障及部署验收平台故障；不适用于无关的 LOA 应用层工作。
 ---
 
-# LOA 数据链路与验收控制面运维
+# OC Ops
 
 支持人和 AI 安全协作接管 `loa-glabal-crawler`、`loa-data-gateway`、`loa_agent_lite`、`oc-flow-guard`，以及它们依赖的 RabbitMQ、TOS、PostgreSQL、Redis、EulerStream、ECS 和 Fan Radar 数据路径。`oc-flow-guard` 是独立的部署发现与验收控制面，不在 Crawler → Gateway → Agent Lite 业务数据路径中；平台可用、GitHub 发现成功或验收记录存在都不能替代业务数据路径证据。
 
@@ -22,7 +22,7 @@ description: 运维、发布、回滚和诊断 LOA Crawler-to-Gateway-to-Agent-L
 
 ## 加载当前知识并按任务路由
 
-随附 `references/` 是可移植的运维知识快照，不要求外部 `loa-data-pipeline-ops` 目录。仅按当前模式读取必要的参考资料：
+随附 `references/` 是可移植的运维知识快照，不要求外部 `oc-ops` 目录。仅按当前模式读取必要的参考资料：
 
 - 环境、分支、主机、端口、服务或日志位置：读取 [references/environment.md](references/environment.md)。
 - 需要访问服务器、核验当前执行环境的连接能力或为他人准备访问步骤：读取 [references/access-channel.md](references/access-channel.md)。使用逻辑目标，不假定任何固定 SSH 别名、用户名或身份文件。
