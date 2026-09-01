@@ -8,7 +8,7 @@
 - [`greenfield-requirement-design`](./greenfield-requirement-design/README.md)：为无需保留既有产品行为或源码实现的非平凡全新需求生成经用户确认的冻结规格。
 - [`implement-frozen-spec`](./implement-frozen-spec/README.md)：严格按照已冻结的规格实施并验证候选实现。
 - [`review-spec-implementation`](./review-spec-implementation/README.md)：独立审查候选实现是否满足冻结规格。
-- [`loa-data-pipeline-ops`](./loa-data-pipeline-ops/README.md)：运维、发布、回滚和诊断 LOA Crawler-to-Gateway-to-Agent-Lite 数据链路。
+- [`oc-ops`](./oc-ops/README.md)：运维、发布、回滚和诊断 LOA 数据链路及 OC Flow Guard 验收控制面。
 - [`architecture-boundary-page`](./architecture-boundary-page/README.md)：从代码证据生成单页交互式业务流程与跨组件边界说明，并准备 GitHub Pages 交付。
 
 两个设计 skill 是互斥入口：已有系统的变更使用 `incremental-change-design`，全新产品、服务、组件或独立能力使用 `greenfield-requirement-design`。二者产出相同的 `Status: FROZEN` 规格接口，并与后续两个 skill 组成三段式流程：
@@ -21,7 +21,7 @@ greenfield-requirement-design -------/
 
 设计、实现和审查应分别在独立 Agent 上下文中运行。阶段之间通过冻结的 `SPEC.md`、边界明确的候选实现及 `REVIEW.md` 交接，不依赖上一阶段的私有对话上下文。
 
-`loa-data-pipeline-ops` 是独立的运维 skill，不属于上述规格设计、实现与审查链路。
+`oc-ops` 是独立的运维 skill，不属于上述规格设计、实现与审查链路。
 
 ## Repository layout
 
@@ -43,7 +43,7 @@ skills/
 ├── architecture-boundary-page/
 │   ├── README.md
 │   └── SKILL.md
-└── loa-data-pipeline-ops/
+└── oc-ops/
     ├── README.md
     ├── SKILL.md
     ├── agents/
@@ -82,7 +82,7 @@ $incremental-change-design
 $greenfield-requirement-design
 $implement-frozen-spec
 $review-spec-implementation
-$loa-data-pipeline-ops
+$oc-ops
 $architecture-boundary-page
 ```
 

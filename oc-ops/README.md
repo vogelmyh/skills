@@ -1,4 +1,4 @@
-# loa-data-pipeline-ops
+# oc-ops
 
 运维、发布、回滚和诊断 LOA Crawler-to-Gateway-to-Agent-Lite 数据链路及 OC Flow Guard 验收控制面，并保留有关运行环境、组件故障和端到端排查的已固化运维经验。
 
@@ -9,7 +9,7 @@
 ## Invoke
 
 ```text
-$loa-data-pipeline-ops
+$oc-ops
 ```
 
 调用时提供目标组件、环境、症状或操作目标以及已知时间窗口。具体的请求分类、授权边界、安全约束、参考资料路由和停止条件以 [`SKILL.md`](./SKILL.md) 为准。
