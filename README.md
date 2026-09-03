@@ -10,6 +10,7 @@
 - [`review-spec-implementation`](./review-spec-implementation/README.md)：独立审查候选实现是否满足冻结规格。
 - [`oc-ops`](./oc-ops/README.md)：运维、发布、回滚和诊断 LOA 数据链路及 OC Flow Guard 验收控制面。
 - [`architecture-boundary-page`](./architecture-boundary-page/README.md)：从代码证据生成单页交互式业务流程与跨组件边界说明，并准备 GitHub Pages 交付。
+- [`archify`](./archify/README.md)：将系统描述或代码证据生成可交互的独立 HTML 架构图、流程图、时序图、数据流图与生命周期图。
 
 两个设计 skill 是互斥入口：已有系统的变更使用 `incremental-change-design`，全新产品、服务、组件或独立能力使用 `greenfield-requirement-design`。二者产出相同的 `Status: FROZEN` 规格接口，并与后续两个 skill 组成三段式流程：
 
@@ -49,6 +50,10 @@ skills/
 ├── architecture-boundary-page/
 │   ├── README.md
 │   └── SKILL.md
+├── archify/
+│   ├── README.md
+│   ├── SKILL.md
+│   └── ...（上游渲染器、模板、schema 与示例）
 └── oc-ops/
     ├── README.md
     ├── SKILL.md
@@ -90,6 +95,7 @@ $implement-frozen-spec
 $review-spec-implementation
 $oc-ops
 $architecture-boundary-page
+$archify
 ```
 
 需要在 Codex 中全局启用时，将个人 skills 目录中的同名入口链接到本仓库内的 skill 目录：
