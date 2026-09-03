@@ -21,6 +21,8 @@ greenfield-requirement-design -------/
 
 设计、实现和审查应分别在独立 Agent 上下文中运行。阶段之间通过冻结的 `SPEC.md`、边界明确的候选实现及 `REVIEW.md` 交接，不依赖上一阶段的私有对话上下文。
 
+以上四个设计、实现与审查 skill 均关闭隐式调用；只有用户通过 `$skill-name` 显式指定时才会加载。
+
 `oc-ops` 是独立的运维 skill，不属于上述规格设计、实现与审查链路。
 
 ## Repository layout
@@ -30,16 +32,20 @@ skills/
 ├── README.md
 ├── incremental-change-design/
 │   ├── README.md
-│   └── SKILL.md
+│   ├── SKILL.md
+│   └── agents/openai.yaml
 ├── greenfield-requirement-design/
 │   ├── README.md
-│   └── SKILL.md
+│   ├── SKILL.md
+│   └── agents/openai.yaml
 ├── implement-frozen-spec/
 │   ├── README.md
-│   └── SKILL.md
+│   ├── SKILL.md
+│   └── agents/openai.yaml
 ├── review-spec-implementation/
 │   ├── README.md
-│   └── SKILL.md
+│   ├── SKILL.md
+│   └── agents/openai.yaml
 ├── architecture-boundary-page/
 │   ├── README.md
 │   └── SKILL.md
@@ -92,7 +98,7 @@ $architecture-boundary-page
 ln -s /absolute/path/to/skills/<skill-name> "$HOME/.codex/skills/<skill-name>"
 ```
 
-本仓库内的目录是唯一事实源；`$HOME/.codex/skills/` 只作为 Codex 的全局发现入口，不单独保留或维护副本。Codex 会根据 `SKILL.md` 中的 `description` 自动匹配，也支持通过 `$skill-name` 显式调用。
+本仓库内的目录是唯一事实源；`$HOME/.codex/skills/` 只作为 Codex 的全局发现入口，不单独保留或维护副本。Codex 通常会根据 `SKILL.md` 中的 `description` 自动匹配；配置了 `policy.allow_implicit_invocation: false` 的 skill 只支持通过 `$skill-name` 显式调用。
 
 ## Maintenance rules
 

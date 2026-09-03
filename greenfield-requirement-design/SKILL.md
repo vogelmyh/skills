@@ -3,10 +3,10 @@ name: greenfield-requirement-design
 description: >-
   Design a non-trivial greenfield product, service, component, or capability
   through targeted requirement reconnaissance and decision-focused
-  collaboration, ending in a frozen implementation specification. Use before
-  implementation when no existing product behavior or source implementation
-  must be preserved. Do not use for incremental changes to an existing system,
-  trivial work, or implementation of an already-frozen spec.
+  collaboration, ending in a frozen implementation specification. Use only
+  when the user explicitly invokes `$greenfield-requirement-design`. Do not use
+  for incremental changes to an existing system, trivial work, or
+  implementation of an already-frozen spec.
 ---
 
 # Greenfield Requirement Design

@@ -3,10 +3,10 @@ name: incremental-change-design
 description: >-
   Design a non-trivial incremental change in an unfamiliar existing codebase
   through targeted reconnaissance and decision-focused collaboration, ending
-  in a frozen implementation specification. Use before implementation when the
-  user needs to understand and approve a change to an existing system. Do not
-  use for trivial edits, obvious bug fixes, greenfield architecture, or
-  implementation of an already-frozen spec.
+  in a frozen implementation specification. Use only when the user explicitly
+  invokes `$incremental-change-design`. Do not use for trivial edits, obvious
+  bug fixes, greenfield architecture, or implementation of an already-frozen
+  spec.
 ---
 
 # Incremental Change Design

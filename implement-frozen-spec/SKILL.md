@@ -1,13 +1,11 @@
 ---
 name: implement-frozen-spec
 description: >-
-  Implement an approved frozen specification when the user invokes this skill
-  in an implementation context separate from design, including focused
-  verification, self-review, and scope minimization. Use when a `SPEC.md` is
-  marked `Status: FROZEN` and the user has authorized implementation, whether
-  the spec describes an incremental change, greenfield system, bug fix, or
-  migration. Do not use to explore or redesign an unfrozen requirement, or to
-  independently approve the resulting implementation.
+  Implement an approved frozen specification, including focused verification,
+  self-review, and scope minimization. Use only when the user explicitly invokes
+  `$implement-frozen-spec` in an implementation context separate from design.
+  Do not use to explore or redesign an unfrozen requirement, or to independently
+  approve the resulting implementation.
 ---
 
 # Implement Frozen Spec

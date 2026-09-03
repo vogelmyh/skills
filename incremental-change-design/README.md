@@ -4,7 +4,7 @@
 
 ## When to use
 
-在开始实现之前使用，适合需要理解现状、关闭关键设计决策并获得用户批准的增量变更。不适用于简单编辑、明显缺陷修复、绿地架构设计或已冻结规格的实现。
+仅在用户显式调用 `$incremental-change-design` 时使用。适合在开始实现之前理解现状、关闭关键设计决策并获得用户批准的增量变更。不适用于简单编辑、明显缺陷修复、绿地架构设计或已冻结规格的实现。
 
 ## Invoke
 
@@ -17,7 +17,7 @@ $incremental-change-design
 ## Contents
 
 - `SKILL.md`：Codex 指令入口与完整工作流
+- `agents/openai.yaml`：关闭隐式调用的调用策略
 - `README.md`：面向维护者的概览，不参与运行
 
 该 skill 是独立单元，不要求仓库级 `AGENTS.md` 或其他同组 skill 才能执行。
-

@@ -2,9 +2,10 @@
 name: review-spec-implementation
 description: >-
   Independently review a visible candidate against a frozen specification for
-  compliance, correctness, minimality, risk, and evidence quality. Use when the
-  user invokes this skill in a review context independent from incremental or
-  greenfield implementation. Do not use to design, implement, or fix findings.
+  compliance, correctness, minimality, risk, and evidence quality. Use only
+  when the user explicitly invokes `$review-spec-implementation` in a review
+  context independent from implementation. Do not use to design, implement, or
+  fix findings.
 ---
 
 # Review Spec Implementation

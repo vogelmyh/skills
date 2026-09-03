@@ -4,7 +4,7 @@
 
 ## When to use
 
-在候选实现和基线可见、冻结规格可读取时使用。该 skill 只负责审查、发现和结论，不负责设计、实现或修复问题。
+仅在用户显式调用 `$review-spec-implementation`，且候选实现和基线可见、冻结规格可读取时使用。该 skill 只负责审查、发现和结论，不负责设计、实现或修复问题。
 
 ## Invoke
 
@@ -17,7 +17,7 @@ $review-spec-implementation
 ## Contents
 
 - `SKILL.md`：Codex 指令入口与完整工作流
+- `agents/openai.yaml`：关闭隐式调用的调用策略
 - `README.md`：面向维护者的概览，不参与运行
 
 该 skill 是独立单元，不依赖实现阶段的私有推理或原分组目录中的共享说明。
-
